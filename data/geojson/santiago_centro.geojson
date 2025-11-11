@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Santiago Centro",
+        "region": "Metropolitana",
+        "description": "Centro histórico de Santiago"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-70.6700, -33.4300],
+            [-70.6400, -33.4300],
+            [-70.6400, -33.4500],
+            [-70.6700, -33.4500],
+            [-70.6700, -33.4300]
+          ]
+        ]
+      }
+    }
+  ]
+}

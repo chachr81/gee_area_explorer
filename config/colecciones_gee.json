@@ -1,0 +1,1665 @@
+{
+  "_metadata": {
+    "version": "2.2.0",
+    "last_updated": "2025-11-11T17:06:15.455955",
+    "auto_update_enabled": true,
+    "cache_duration_days": 30,
+    "descripcion": "Catálogo híbrido con auto-actualización desde GEE API",
+    "nota_resoluciones": "Alta resolución espacial: <5m (WorldView, QuickBird - comercial). Resolución media: 10-30m (Sentinel-2, Landsat - gratuito). Resolución baja: >100m (MODIS - gratuito).",
+    "last_enriched": "2025-11-11T17:08:41.305544"
+  },
+  "opticas_alta_res": {
+    "nombre": "Imágenes Ópticas de Resolución Media",
+    "colecciones": {
+      "COPERNICUS/S2_SR_HARMONIZED": {
+        "nombre": "Sentinel-2 MSI L2A (Harmonized)",
+        "resolucion": "10m",
+        "bandas_principales": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "temporal": "2017-presente",
+        "frecuencia": "5 días",
+        "nivel": "L2A (Surface Reflectance)",
+        "qa": true,
+        "aplicaciones": [
+          "Vegetación",
+          "Agricultura",
+          "Urbano",
+          "Agua"
+        ],
+        "last_verified": "2025-11-11T15:43:42.451192",
+        "date_start": "2017-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "5 días",
+        "sensor_type": "Sentinel-2 MSI",
+        "metadata_enriched": "2025-11-11T17:08:41.303233"
+      },
+      "LANDSAT/LC09/C02/T1_L2": {
+        "nombre": "Landsat 9 OLI-2/TIRS-2 L2",
+        "resolucion": "30m",
+        "bandas_principales": [
+          "SR_B1",
+          "SR_B2",
+          "SR_B3",
+          "SR_B4",
+          "SR_B5",
+          "SR_B6"
+        ],
+        "temporal": "2021-presente",
+        "frecuencia": "16 días",
+        "nivel": "L2 (Surface Reflectance + Surface Temperature)",
+        "qa": true,
+        "aplicaciones": [
+          "Vegetación",
+          "Agricultura",
+          "Cambio uso suelo"
+        ],
+        "last_verified": "2025-11-11T15:54:19.435036",
+        "date_start": "2021-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Landsat 9 OLI-2/TIRS-2",
+        "metadata_enriched": "2025-11-11T17:08:41.303375"
+      },
+      "LANDSAT/LC09/C02/T1_TOA": {
+        "nombre": "Landsat 9 OLI-2/TIRS-2 TOA",
+        "resolucion": "30m",
+        "temporal": "2021-presente",
+        "nivel": "TOA (Top of Atmosphere)",
+        "qa": true,
+        "bandas_principales": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "last_verified": "2025-11-11T15:54:19.696510",
+        "date_start": "2021-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Landsat 9 OLI-2/TIRS-2",
+        "metadata_enriched": "2025-11-11T17:08:41.303440"
+      },
+      "LANDSAT/LC08/C02/T1_L2": {
+        "nombre": "T1_L2",
+        "bandas_principales": [
+          "SR_B1",
+          "SR_B2",
+          "SR_B3",
+          "SR_B4",
+          "SR_B5",
+          "SR_B6"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:45.238063",
+        "auto_agregada": true
+      },
+      "LANDSAT/LC08/C02/T1_TOA": {
+        "nombre": "Landsat 8 OLI/TIRS TOA",
+        "resolucion": "30m",
+        "temporal": "2013-presente",
+        "nivel": "TOA",
+        "qa": true,
+        "bandas_principales": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "last_verified": "2025-11-11T15:54:20.280904",
+        "date_start": "2013-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Landsat 8 OLI/TIRS",
+        "metadata_enriched": "2025-11-11T17:08:41.303527"
+      },
+      "LANDSAT/LE07/C02/T1_L2": {
+        "nombre": "Landsat 7 ETM+ L2",
+        "resolucion": "30m",
+        "temporal": "1999-presente",
+        "nivel": "L2",
+        "qa": true,
+        "nota": "SLC-off desde 2003 (líneas faltantes)",
+        "bandas_principales": [
+          "SR_B1",
+          "SR_B2",
+          "SR_B3",
+          "SR_B4",
+          "SR_B5",
+          "SR_B7"
+        ],
+        "last_verified": "2025-11-11T16:12:23.439942",
+        "date_start": "1999-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Landsat 7 ETM+",
+        "metadata_enriched": "2025-11-11T17:08:41.303588"
+      },
+      "LANDSAT/LT05/C02/T1_L2": {
+        "nombre": "Landsat 5 TM L2",
+        "resolucion": "30m",
+        "temporal": "1984-2012",
+        "nivel": "L2",
+        "qa": true,
+        "aplicaciones": [
+          "Series históricas",
+          "Cambio de largo plazo"
+        ],
+        "bandas_principales": [
+          "SR_B1",
+          "SR_B2",
+          "SR_B3",
+          "SR_B4",
+          "SR_B5",
+          "SR_B7"
+        ],
+        "last_verified": "2025-11-11T16:12:23.676539",
+        "date_start": "1984-01-01",
+        "date_end": "2012-12-31",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.303629"
+      },
+      "LANDSAT/LT04/C02/T1_L2": {
+        "nombre": "Landsat 4 TM L2",
+        "resolucion": "30m",
+        "temporal": "1982-1993",
+        "nivel": "L2",
+        "qa": true,
+        "bandas_principales": [
+          "SR_B1",
+          "SR_B2",
+          "SR_B3",
+          "SR_B4",
+          "SR_B5",
+          "SR_B7"
+        ],
+        "last_verified": "2025-11-11T16:12:24.065935",
+        "date_start": "1982-01-01",
+        "date_end": "1993-12-31",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.303719"
+      },
+      "MODIS/061/MCD43A4": {
+        "nombre": "MCD43A4",
+        "bandas_principales": [
+          "Nadir_Reflectance_Band1",
+          "Nadir_Reflectance_Band2",
+          "Nadir_Reflectance_Band3",
+          "Nadir_Reflectance_Band4",
+          "Nadir_Reflectance_Band5",
+          "Nadir_Reflectance_Band6"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:53.370698",
+        "auto_agregada": true
+      },
+      "MODIS/061/MCD43A3": {
+        "nombre": "MCD43A3",
+        "bandas_principales": [
+          "Albedo_BSA_Band1",
+          "Albedo_BSA_Band2",
+          "Albedo_BSA_Band3",
+          "Albedo_BSA_Band4",
+          "Albedo_BSA_Band5",
+          "Albedo_BSA_Band6"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:53.644196",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD09A1": {
+        "nombre": "MOD09A1",
+        "bandas_principales": [
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03",
+          "sur_refl_b04",
+          "sur_refl_b05",
+          "sur_refl_b06"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T15:43:08.993238",
+        "auto_agregada": true
+      },
+      "MODIS/061/MYD11A2": {
+        "nombre": "MYD11A2",
+        "bandas_principales": [
+          "LST_Day_1km",
+          "QC_Day",
+          "Day_view_time",
+          "Day_view_angl",
+          "LST_Night_1km",
+          "QC_Night"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:41:56.770211",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S2_HARMONIZED": {
+        "nombre": "Sentinel-2 MSI L1C (TOA)",
+        "resolucion": "10m",
+        "temporal": "2015-presente",
+        "nivel": "L1C (Top of Atmosphere)",
+        "qa": true,
+        "bandas_principales": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "last_verified": "2025-11-11T15:54:19.177531",
+        "date_start": "2015-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "5 días",
+        "sensor_type": "Sentinel-2 MSI",
+        "metadata_enriched": "2025-11-11T17:08:41.303333"
+      }
+    },
+    "nota": "Resolución media (10-30m): Sentinel-2, Landsat, MODIS. Alta resolución real (<5m) incluye sensores como WorldView-3, QuickBird, GeoEye que no están disponibles gratuitamente en GEE."
+  },
+  "vegetacion": {
+    "nombre": "Productos de Vegetación e Índices",
+    "colecciones": {
+      "MODIS/061/MOD13A1": {
+        "nombre": "MOD13A1",
+        "bandas_principales": [
+          "NDVI",
+          "EVI",
+          "DetailedQA",
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T15:42:40.399293",
+        "auto_agregada": true
+      },
+      "MODIS/061/MYD13A1": {
+        "nombre": "MODIS Aqua Vegetation Indices 16-Day 500m",
+        "resolucion": "500m",
+        "temporal": "2002-presente",
+        "frecuencia": "16 días",
+        "nivel": "L3",
+        "qa": true,
+        "bandas_principales": [
+          "NDVI",
+          "EVI",
+          "DetailedQA",
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03"
+        ],
+        "last_verified": "2025-11-11T16:12:24.786059",
+        "date_start": "2002-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.303812"
+      },
+      "MODIS/061/MOD13Q1": {
+        "nombre": "MODIS Terra Vegetation Indices 16-Day 250m",
+        "resolucion": "250m",
+        "temporal": "2000-presente",
+        "frecuencia": "16 días",
+        "nivel": "L3",
+        "qa": true,
+        "aplicaciones": [
+          "Agricultura de precisión",
+          "Alta resolución temporal"
+        ],
+        "bandas_principales": [
+          "NDVI",
+          "EVI",
+          "DetailedQA",
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03"
+        ],
+        "last_verified": "2025-11-11T16:12:25.142291",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.303864"
+      },
+      "MODIS/061/MYD13Q1": {
+        "nombre": "MODIS Aqua Vegetation Indices 16-Day 250m",
+        "resolucion": "250m",
+        "temporal": "2002-presente",
+        "frecuencia": "16 días",
+        "nivel": "L3",
+        "qa": true,
+        "bandas_principales": [
+          "NDVI",
+          "EVI",
+          "DetailedQA",
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03"
+        ],
+        "last_verified": "2025-11-11T16:12:25.431921",
+        "date_start": "2002-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.303884"
+      },
+      "MODIS/061/MOD09A1": {
+        "nombre": "MODIS Terra Surface Reflectance 8-Day 500m",
+        "resolucion": "500m",
+        "temporal": "2000-presente",
+        "frecuencia": "8 días",
+        "nivel": "L3",
+        "qa": true,
+        "aplicaciones": [
+          "Reflectancia superficie",
+          "Índices espectrales"
+        ],
+        "bandas_principales": [
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03",
+          "sur_refl_b04",
+          "sur_refl_b05",
+          "sur_refl_b06"
+        ],
+        "last_verified": "2025-11-11T16:12:26.069751",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "8 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.303930"
+      },
+      "MODIS/061/MOD17A2H": {
+        "nombre": "MOD17A2H",
+        "bandas_principales": [
+          "Gpp",
+          "PsnNet",
+          "Psn_QC"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:52.797152",
+        "auto_agregada": true
+      },
+      "MODIS/061/MYD17A2H": {
+        "nombre": "MYD17A2H",
+        "bandas_principales": [
+          "Gpp",
+          "PsnNet",
+          "Psn_QC"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:51.990232",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD17A3HGF": {
+        "nombre": "MOD17A3HGF",
+        "bandas_principales": [
+          "Gpp",
+          "Npp",
+          "Npp_QC"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:53.093322",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD16A2": {
+        "nombre": "MOD16A2",
+        "bandas_principales": [
+          "ET",
+          "LE",
+          "PET",
+          "PLE",
+          "ET_QC"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:55.151721",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD44B": {
+        "nombre": "MOD44B",
+        "bandas_principales": [
+          "Percent_Tree_Cover",
+          "Percent_NonTree_Vegetation",
+          "Percent_NonVegetated",
+          "Quality",
+          "Percent_Tree_Cover_SD",
+          "Percent_NonVegetated_SD"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:55.358942",
+        "auto_agregada": true
+      },
+      "MODIS/061/MYD13A2": {
+        "nombre": "MYD13A2",
+        "bandas_principales": [
+          "NDVI",
+          "EVI",
+          "DetailedQA",
+          "sur_refl_b01",
+          "sur_refl_b02",
+          "sur_refl_b03"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T15:43:09.425361",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD09GA": {
+        "nombre": "MODIS Terra Surface Reflectance Daily 500m/1km",
+        "resolucion": "500m",
+        "temporal": "2000-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L2G",
+        "qa": true,
+        "aplicaciones": [
+          "Calcular índices custom",
+          "Monitoreo diario"
+        ],
+        "bandas_principales": [
+          "num_observations_1km",
+          "state_1km",
+          "SensorZenith",
+          "SensorAzimuth",
+          "Range",
+          "SolarZenith"
+        ],
+        "last_verified": "2025-11-11T16:12:25.740920",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.303916"
+      },
+      "NASA/VIIRS/002/VNP13A1": {
+        "nombre": "VIIRS Vegetation Indices 16-Day 500m",
+        "resolucion": "500m",
+        "temporal": "2012-presente",
+        "frecuencia": "16 días",
+        "nivel": "L3",
+        "qa": true,
+        "aplicaciones": [
+          "Continuación de MODIS",
+          "Vegetación"
+        ],
+        "bandas_principales": [
+          "EVI",
+          "EVI2",
+          "NDVI",
+          "NIR_reflectance",
+          "SWIR1_reflectance",
+          "SWIR2_reflectance"
+        ],
+        "last_verified": "2025-11-11T16:12:26.350649",
+        "date_start": "2012-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "16 días",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.303960"
+      },
+      "MODIS/061/MCD15A3H": {
+        "nombre": "MCD15A3H",
+        "bandas_principales": [
+          "Fpar",
+          "Lai",
+          "FparLai_QC",
+          "FparExtra_QC",
+          "FparStdDev",
+          "LaiStdDev"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:51.678116",
+        "auto_agregada": true
+      }
+    }
+  },
+  "clima": {
+    "nombre": "Datos Climáticos y Meteorológicos",
+    "colecciones": {
+      "ECMWF/ERA5_LAND/DAILY_AGGR": {
+        "nombre": "ERA5-Land Daily Aggregated",
+        "resolucion": "11132m (~11km)",
+        "variables": [
+          "temperature_2m",
+          "total_precipitation",
+          "dewpoint_temperature_2m",
+          "u_component_of_wind_10m",
+          "v_component_of_wind_10m"
+        ],
+        "temporal": "1950-presente",
+        "frecuencia": "Diaria",
+        "nivel": "Reanálisis",
+        "aplicaciones": [
+          "Series climáticas largas",
+          "Temperatura",
+          "Precipitación"
+        ],
+        "bandas_principales": [
+          "dewpoint_temperature_2m",
+          "temperature_2m",
+          "skin_temperature",
+          "soil_temperature_level_1",
+          "soil_temperature_level_2",
+          "soil_temperature_level_3"
+        ],
+        "last_verified": "2025-11-11T16:12:26.641387",
+        "date_start": "1950-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "ERA5 Reanalysis",
+        "metadata_enriched": "2025-11-11T17:08:41.304103"
+      },
+      "ECMWF/ERA5_LAND/MONTHLY_AGGR": {
+        "nombre": "ERA5-Land Monthly Aggregated",
+        "resolucion": "11132m",
+        "temporal": "1950-presente",
+        "frecuencia": "Mensual",
+        "nivel": "Reanálisis",
+        "bandas_principales": [
+          "dewpoint_temperature_2m",
+          "temperature_2m",
+          "skin_temperature",
+          "soil_temperature_level_1",
+          "soil_temperature_level_2",
+          "soil_temperature_level_3"
+        ],
+        "last_verified": "2025-11-11T16:12:26.956451",
+        "date_start": "1950-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "mensual",
+        "sensor_type": "ERA5 Reanalysis",
+        "metadata_enriched": "2025-11-11T17:08:41.304134"
+      },
+      "ECMWF/ERA5/DAILY": {
+        "nombre": "ERA5 Daily Aggregated",
+        "resolucion": "27830m (~28km)",
+        "temporal": "1979-presente",
+        "frecuencia": "Diaria",
+        "nivel": "Reanálisis",
+        "bandas_principales": [
+          "mean_2m_air_temperature",
+          "minimum_2m_air_temperature",
+          "maximum_2m_air_temperature",
+          "dewpoint_2m_temperature",
+          "total_precipitation",
+          "surface_pressure"
+        ],
+        "last_verified": "2025-11-11T16:12:27.237108",
+        "date_start": "1979-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "ERA5 Reanalysis",
+        "metadata_enriched": "2025-11-11T17:08:41.304174"
+      },
+      "UCSB-CHG/CHIRPS/DAILY": {
+        "nombre": "CHIRPS Daily Precipitation",
+        "resolucion": "5566m (~5.5km)",
+        "variables": [
+          "precipitation"
+        ],
+        "temporal": "1981-presente",
+        "frecuencia": "Diaria",
+        "nivel": "Producto derivado",
+        "aplicaciones": [
+          "Precipitación alta resolución",
+          "Sequías",
+          "Agricultura"
+        ],
+        "bandas_principales": [
+          "precipitation"
+        ],
+        "last_verified": "2025-11-11T16:12:27.515694",
+        "date_start": "1981-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "CHIRPS",
+        "metadata_enriched": "2025-11-11T17:08:41.304208"
+      },
+      "UCSB-CHG/CHIRPS/PENTAD": {
+        "nombre": "CHIRPS Pentad (5-day) Precipitation",
+        "resolucion": "5566m",
+        "temporal": "1981-presente",
+        "frecuencia": "5 días",
+        "nivel": "Producto derivado",
+        "bandas_principales": [
+          "precipitation"
+        ],
+        "last_verified": "2025-11-11T16:12:28.416067",
+        "date_start": "1981-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "5 días",
+        "sensor_type": "CHIRPS",
+        "metadata_enriched": "2025-11-11T17:08:41.304236"
+      },
+      "NASA/GLDAS/V021/NOAH/G025/T3H": {
+        "nombre": "GLDAS Noah Land Surface Model",
+        "resolucion": "27830m (~28km)",
+        "variables": [
+          "SoilMoi0_10cm_inst",
+          "Tair_f_inst",
+          "Rainf_f_tavg",
+          "Evap_tavg"
+        ],
+        "temporal": "2000-presente",
+        "frecuencia": "3 horas",
+        "nivel": "Modelo",
+        "aplicaciones": [
+          "Humedad suelo",
+          "Evapotranspiración",
+          "Balance hídrico"
+        ],
+        "bandas_principales": [
+          "Albedo_inst",
+          "AvgSurfT_inst",
+          "CanopInt_inst",
+          "ECanop_tavg",
+          "ESoil_tavg",
+          "Evap_tavg"
+        ],
+        "last_verified": "2025-11-11T16:12:29.810531",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "3 horas",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304282"
+      },
+      "NASA/GLDAS/V022/CLSM/G025/DA1D": {
+        "nombre": "GLDAS Catchment Land Surface Model Daily",
+        "resolucion": "27830m",
+        "temporal": "2003-presente",
+        "frecuencia": "Diaria",
+        "nivel": "Modelo",
+        "bandas_principales": [
+          "ACond_tavg",
+          "AvgSurfT_tavg",
+          "CanopInt_tavg",
+          "ECanop_tavg",
+          "ESoil_tavg",
+          "EvapSnow_tavg"
+        ],
+        "last_verified": "2025-11-11T16:12:30.080338",
+        "date_start": "2003-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304310"
+      },
+      "MODIS/061/MOD11A2": {
+        "nombre": "MODIS Terra Land Surface Temperature 8-Day",
+        "resolucion": "1000m",
+        "bandas_principales": [
+          "LST_Day_1km",
+          "QC_Day",
+          "Day_view_time",
+          "Day_view_angl",
+          "LST_Night_1km",
+          "QC_Night"
+        ],
+        "temporal": "2000-presente",
+        "frecuencia": "8 días",
+        "nivel": "L3",
+        "qa": true,
+        "aplicaciones": [
+          "Temperatura superficie",
+          "Islas de calor",
+          "Estrés hídrico"
+        ],
+        "last_verified": "2025-11-11T16:12:30.331529",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "8 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.304339"
+      },
+      "MODIS/061/MOD11A1": {
+        "nombre": "MODIS Terra Land Surface Temperature Daily",
+        "resolucion": "1000m",
+        "temporal": "2000-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "qa": true,
+        "bandas_principales": [
+          "LST_Day_1km",
+          "QC_Day",
+          "Day_view_time",
+          "Day_view_angle",
+          "LST_Night_1km",
+          "QC_Night"
+        ],
+        "last_verified": "2025-11-11T16:12:30.620376",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.304354"
+      },
+      "ECMWF/ERA5/MONTHLY": {
+        "nombre": "MONTHLY",
+        "bandas_principales": [
+          "mean_2m_air_temperature",
+          "minimum_2m_air_temperature",
+          "maximum_2m_air_temperature",
+          "dewpoint_2m_temperature",
+          "total_precipitation",
+          "surface_pressure"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:55.768022",
+        "auto_agregada": true
+      },
+      "NASA/ORNL/DAYMET_V4": {
+        "nombre": "DAYMET_V4",
+        "bandas_principales": [
+          "dayl",
+          "prcp",
+          "srad",
+          "swe",
+          "tmax",
+          "tmin"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:55.948935",
+        "auto_agregada": true
+      },
+      "IDAHO_EPSCOR/GRIDMET": {
+        "nombre": "GRIDMET",
+        "bandas_principales": [
+          "pr",
+          "rmax",
+          "rmin",
+          "sph",
+          "srad",
+          "th"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:56.213168",
+        "auto_agregada": true
+      },
+      "NASA/GDDP-CMIP6": {
+        "nombre": "GDDP-CMIP6",
+        "bandas_principales": [
+          "hurs",
+          "huss",
+          "pr",
+          "rlds",
+          "rsds",
+          "sfcWind"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:48.900568",
+        "auto_agregada": true
+      },
+      "NASA/FLDAS/NOAH01/C/GL/M/V001": {
+        "nombre": "V001",
+        "bandas_principales": [
+          "Evap_tavg",
+          "LWdown_f_tavg",
+          "Lwnet_tavg",
+          "Psurf_f_tavg",
+          "Qair_f_tavg",
+          "Qg_tavg"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:49.131180",
+        "auto_agregada": true
+      },
+      "NASA/GPM_L3/IMERG_V07": {
+        "nombre": "GPM IMERG Precipitation",
+        "resolucion": "11132m",
+        "temporal": "2000-presente",
+        "frecuencia": "30 minutos",
+        "nivel": "L3",
+        "aplicaciones": [
+          "Precipitación en tiempo casi real",
+          "Eventos extremos"
+        ],
+        "bandas_principales": [
+          "HQobservationTime",
+          "HQprecipSource",
+          "HQprecipitation",
+          "IRkalmanFilterWeight",
+          "IRprecipitation",
+          "precipitationCal"
+        ],
+        "last_verified": "2025-11-11T16:12:28.670365",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "30 minutos",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304266"
+      },
+      "NASA/VIIRS/002/VNP21A1D": {
+        "nombre": "VIIRS Land Surface Temperature Daily",
+        "resolucion": "1000m",
+        "temporal": "2012-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "qa": true,
+        "bandas_principales": [
+          "LST_1KM",
+          "QC",
+          "Emis_14",
+          "Emis_15",
+          "Emis_16",
+          "View_Angle"
+        ],
+        "last_verified": "2025-11-11T16:12:30.921633",
+        "date_start": "2012-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304388"
+      }
+    }
+  },
+  "elevacion": {
+    "nombre": "Modelos de Elevación Digital (DEM)",
+    "colecciones": {
+      "COPERNICUS/DEM/GLO30": {
+        "nombre": "Copernicus DEM GLO-30",
+        "resolucion": "30m",
+        "bandas_principales": [
+          "DEM",
+          "EDM",
+          "FLM",
+          "HEM",
+          "WBM"
+        ],
+        "temporal": "Estático (2021)",
+        "nivel": "DEM procesado",
+        "precision_vertical": "±4m (relativa)",
+        "aplicaciones": [
+          "Topografía",
+          "Hidrología",
+          "Geomorfología"
+        ],
+        "last_verified": "2025-11-11T16:12:31.157290"
+      },
+      "COPERNICUS/DEM/GLO90": {
+        "nombre": "Copernicus DEM GLO-90",
+        "resolucion": "90m",
+        "temporal": "Estático (2021)",
+        "nivel": "DEM procesado",
+        "precision_vertical": "±4m"
+      },
+      "NASA/NASADEM_HGT/001": {
+        "nombre": "NASADEM HGT",
+        "resolucion": "30m",
+        "temporal": "Estático (2000)",
+        "nivel": "DEM procesado",
+        "precision_vertical": "±10m",
+        "aplicaciones": [
+          "Mejorado de SRTM",
+          "Análisis hidrológico"
+        ]
+      },
+      "USGS/SRTMGL1_003": {
+        "nombre": "SRTM Digital Elevation 30m",
+        "resolucion": "30m",
+        "temporal": "Estático (2000)",
+        "nivel": "DEM procesado",
+        "precision_vertical": "±16m",
+        "cobertura": "60°N - 56°S",
+        "aplicaciones": [
+          "Estándar global",
+          "Compatible con muchas aplicaciones"
+        ]
+      },
+      "JAXA/ALOS/AW3D30/V3_2": {
+        "nombre": "ALOS World 3D-30m",
+        "resolucion": "30m",
+        "temporal": "Estático (2006-2011)",
+        "nivel": "DSM (Digital Surface Model)",
+        "precision_vertical": "±5m",
+        "aplicaciones": [
+          "Alta precisión",
+          "Análisis topográfico"
+        ],
+        "bandas_principales": [
+          "DSM",
+          "STK",
+          "MSK"
+        ],
+        "last_verified": "2025-11-11T16:12:32.267268",
+        "date_start": "estático (2006",
+        "date_end": "2011-12-31",
+        "temporal_resolution": "variable",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304548"
+      },
+      "USGS/GTOPO30": {
+        "nombre": "GTOPO30 Global Elevation",
+        "resolucion": "1000m (~1km)",
+        "temporal": "Estático (1996)",
+        "nivel": "DEM",
+        "aplicaciones": [
+          "Análisis regional/continental",
+          "Baja resolución"
+        ]
+      },
+      "NASA/GRACE/MASS_GRIDS/MASCON": {
+        "nombre": "MASCON",
+        "bandas_principales": [
+          "lwe_thickness",
+          "uncertainty"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:49.540401",
+        "auto_agregada": true
+      }
+    }
+  },
+  "sar": {
+    "nombre": "Datos SAR (Synthetic Aperture Radar)",
+    "colecciones": {
+      "COPERNICUS/S1_GRD": {
+        "nombre": "Sentinel-1 SAR GRD",
+        "resolucion": "10m",
+        "bandas_principales": [
+          "HH",
+          "HV",
+          "angle"
+        ],
+        "temporal": "2014-presente",
+        "frecuencia": "6-12 días",
+        "nivel": "GRD (Ground Range Detected)",
+        "polarizacion": [
+          "VV+VH",
+          "HH+HV"
+        ],
+        "aplicaciones": [
+          "Independiente de nubes",
+          "Inundaciones",
+          "Humedad suelo",
+          "Hielo"
+        ],
+        "last_verified": "2025-11-11T16:12:32.817570",
+        "date_start": "2014-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "6-12 días",
+        "sensor_type": "Sentinel-1 SAR",
+        "metadata_enriched": "2025-11-11T17:08:41.304624"
+      },
+      "COPERNICUS/S1_GRD_FLOAT": {
+        "nombre": "Sentinel-1 SAR GRD Float",
+        "resolucion": "10m",
+        "temporal": "2014-presente",
+        "nivel": "GRD (valores lineales, no dB)",
+        "aplicaciones": [
+          "Análisis cuantitativo",
+          "Procesamiento avanzado"
+        ],
+        "bandas_principales": [
+          "HH",
+          "HV",
+          "angle"
+        ],
+        "last_verified": "2025-11-11T16:12:33.144281",
+        "date_start": "2014-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "variable",
+        "sensor_type": "Sentinel-1 SAR",
+        "metadata_enriched": "2025-11-11T17:08:41.304656"
+      },
+      "JAXA/ALOS/PALSAR/YEARLY/SAR": {
+        "nombre": "SAR",
+        "bandas_principales": [
+          "HH",
+          "HV",
+          "angle",
+          "date",
+          "qa"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:53.666749",
+        "auto_agregada": true
+      },
+      "JAXA/ALOS/PALSAR/YEARLY/FNF": {
+        "nombre": "FNF",
+        "bandas_principales": [
+          "fnf"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:54.041083",
+        "auto_agregada": true
+      }
+    }
+  },
+  "landcover": {
+    "nombre": "Uso y Cobertura del Suelo",
+    "colecciones": {
+      "ESA/WorldCover/v200": {
+        "nombre": "v200",
+        "bandas_principales": [
+          "Map"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:50.066998",
+        "auto_agregada": true
+      },
+      "COPERNICUS/CORINE/V20/100m": {
+        "nombre": "100m",
+        "bandas_principales": [
+          "landcover"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:50.999184",
+        "auto_agregada": true
+      },
+      "MODIS/061/MCD12Q1": {
+        "nombre": "MCD12Q1",
+        "bandas_principales": [
+          "LC_Type1",
+          "LC_Type2",
+          "LC_Type3",
+          "LC_Type4",
+          "LC_Type5",
+          "LC_Prop1_Assessment"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:54.878084",
+        "auto_agregada": true
+      },
+      "USGS/NLCD_RELEASES/2019_REL/NLCD": {
+        "nombre": "NLCD USA Land Cover",
+        "resolucion": "30m",
+        "temporal": "Multi-temporal (2001-2019)",
+        "cobertura": "USA",
+        "nivel": "Producto derivado",
+        "bandas_principales": [
+          "landcover",
+          "impervious",
+          "impervious_descriptor"
+        ],
+        "last_verified": "2025-11-11T16:12:34.280517",
+        "date_start": "multi",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "variable",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304815"
+      },
+      "ESA/WorldCover/v100": {
+        "nombre": "v100",
+        "bandas_principales": [
+          "Map"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:49.799703",
+        "auto_agregada": true
+      },
+      "GOOGLE/DYNAMICWORLD/V1": {
+        "nombre": "V1",
+        "bandas_principales": [
+          "water",
+          "trees",
+          "grass",
+          "flooded_vegetation",
+          "crops",
+          "shrub_and_scrub"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:56.511480",
+        "auto_agregada": true
+      },
+      "COPERNICUS/Landcover/100m/Proba-V-C3/Global": {
+        "nombre": "Global",
+        "bandas_principales": [
+          "discrete_classification",
+          "discrete_classification-proba",
+          "bare-coverfraction",
+          "urban-coverfraction",
+          "crops-coverfraction",
+          "grass-coverfraction"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:51.330002",
+        "auto_agregada": true
+      }
+    }
+  },
+  "agua": {
+    "nombre": "Recursos Hídricos y Océanos",
+    "colecciones": {
+      "JRC/GSW1_4/GlobalSurfaceWater": {
+        "nombre": "JRC Global Surface Water Mapping",
+        "resolucion": "30m",
+        "temporal": "1984-2021",
+        "nivel": "Producto derivado",
+        "aplicaciones": [
+          "Cuerpos de agua",
+          "Cambios en agua superficial",
+          "Inundaciones"
+        ],
+        "date_start": "1984-01-01",
+        "date_end": "2021-12-31",
+        "temporal_resolution": "variable",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.304914"
+      },
+      "JRC/GSW1_4/MonthlyHistory": {
+        "nombre": "MonthlyHistory",
+        "bandas_principales": [
+          "water"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:43.908610",
+        "auto_agregada": true
+      },
+      "NASA/OCEANDATA/MODIS-Terra/L3SMI": {
+        "nombre": "L3SMI",
+        "bandas_principales": [
+          "chlor_a",
+          "nflh",
+          "poc",
+          "Rrs_412",
+          "Rrs_443",
+          "Rrs_469"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:46.913306",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S3/OLCI": {
+        "nombre": "OLCI",
+        "bandas_principales": [
+          "Oa01_radiance",
+          "Oa02_radiance",
+          "Oa03_radiance",
+          "Oa04_radiance",
+          "Oa05_radiance",
+          "Oa06_radiance"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:49.253044",
+        "auto_agregada": true
+      },
+      "NASA/OCEANDATA/MODIS-Aqua/L3SMI": {
+        "nombre": "L3SMI",
+        "bandas_principales": [
+          "chlor_a",
+          "nflh",
+          "poc",
+          "Rrs_412",
+          "Rrs_443",
+          "Rrs_469"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:46.602281",
+        "auto_agregada": true
+      },
+      "HYCOM/sea_temp_salinity": {
+        "nombre": "sea_temp_salinity",
+        "bandas_principales": [
+          "water_temp_0",
+          "salinity_0",
+          "water_temp_2",
+          "salinity_2",
+          "water_temp_4",
+          "salinity_4"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:47.845116",
+        "auto_agregada": true
+      },
+      "NOAA/CDR/OISST/V2_1": {
+        "nombre": "V2_1",
+        "bandas_principales": [
+          "sst",
+          "anom",
+          "ice",
+          "err"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:47.186900",
+        "auto_agregada": true
+      }
+    }
+  },
+  "criosphere": {
+    "nombre": "Nieve, Hielo y Criosfera",
+    "colecciones": {
+      "MODIS/061/MOD10A1": {
+        "nombre": "MOD10A1",
+        "bandas_principales": [
+          "NDSI_Snow_Cover",
+          "NDSI_Snow_Cover_Class",
+          "NDSI_Snow_Cover_Basic_QA",
+          "NDSI_Snow_Cover_Algorithm_Flags_QA",
+          "NDSI",
+          "Snow_Albedo_Daily_Tile"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:52.266921",
+        "auto_agregada": true
+      },
+      "MODIS/061/MYD10A1": {
+        "nombre": "MODIS Aqua Snow Cover Daily",
+        "resolucion": "500m",
+        "temporal": "2002-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "qa": true,
+        "bandas_principales": [
+          "NDSI_Snow_Cover",
+          "NDSI_Snow_Cover_Class",
+          "NDSI_Snow_Cover_Basic_QA",
+          "NDSI_Snow_Cover_Algorithm_Flags_QA",
+          "NDSI",
+          "Snow_Albedo_Daily_Tile"
+        ],
+        "last_verified": "2025-11-11T16:12:35.603180",
+        "date_start": "2002-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.305075"
+      }
+    }
+  },
+  "fuego": {
+    "nombre": "Detección de Incendios y Áreas Quemadas",
+    "colecciones": {
+      "MODIS/061/MOD14A2": {
+        "nombre": "MODIS Terra Thermal Anomalies/Fire 8-Day",
+        "resolucion": "1000m",
+        "temporal": "2000-presente",
+        "frecuencia": "8 días",
+        "nivel": "L3",
+        "aplicaciones": [
+          "Detección incendios activos",
+          "Anomalías térmicas"
+        ],
+        "bandas_principales": [
+          "FireMask",
+          "QA"
+        ],
+        "last_verified": "2025-11-11T16:12:35.840553",
+        "date_start": "2000-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "8 días",
+        "sensor_type": "MODIS Terra",
+        "metadata_enriched": "2025-11-11T17:08:41.305139"
+      },
+      "FIRMS": {
+        "nombre": "FIRMS",
+        "bandas_principales": [
+          "T21",
+          "confidence",
+          "line_number"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:48.185447",
+        "auto_agregada": true
+      },
+      "MODIS/061/MCD64A1": {
+        "nombre": "MCD64A1",
+        "bandas_principales": [
+          "BurnDate",
+          "Uncertainty",
+          "QA",
+          "FirstDay",
+          "LastDay"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:54.622966",
+        "auto_agregada": true
+      },
+      "MODIS/061/MOD14A1": {
+        "nombre": "MOD14A1",
+        "bandas_principales": [
+          "FireMask",
+          "MaxFRP",
+          "sample",
+          "QA"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:48.441480",
+        "auto_agregada": true
+      },
+      "ESA/CCI/FireCCI/5_1": {
+        "nombre": "5_1",
+        "bandas_principales": [
+          "BurnDate",
+          "ConfidenceLevel",
+          "LandCover",
+          "ObservedFlag"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:48.690017",
+        "auto_agregada": true
+      }
+    }
+  },
+  "atmosfera": {
+    "nombre": "Atmósfera y Calidad del Aire",
+    "colecciones": {
+      "COPERNICUS/S5P/NRTI/L3_NO2": {
+        "nombre": "Sentinel-5P NO2 Near Real-Time",
+        "resolucion": "1113m (~1.1km)",
+        "temporal": "2018-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "aplicaciones": [
+          "Contaminación del aire",
+          "Dióxido de nitrógeno"
+        ],
+        "bandas_principales": [
+          "NO2_column_number_density",
+          "tropospheric_NO2_column_number_density",
+          "stratospheric_NO2_column_number_density",
+          "NO2_slant_column_number_density",
+          "tropopause_pressure",
+          "absorbing_aerosol_index"
+        ],
+        "last_verified": "2025-11-11T16:12:36.369370",
+        "date_start": "2018-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "Sentinel-5P TROPOMI",
+        "metadata_enriched": "2025-11-11T17:08:41.305280"
+      },
+      "COPERNICUS/S5P/NRTI/L3_CO": {
+        "nombre": "Sentinel-5P CO Near Real-Time",
+        "resolucion": "1113m",
+        "temporal": "2018-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "aplicaciones": [
+          "Monóxido de carbono",
+          "Incendios",
+          "Contaminación"
+        ],
+        "bandas_principales": [
+          "CO_column_number_density",
+          "H2O_column_number_density",
+          "cloud_height",
+          "sensor_altitude",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle"
+        ],
+        "last_verified": "2025-11-11T16:12:36.591184",
+        "date_start": "2018-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "Sentinel-5P TROPOMI",
+        "metadata_enriched": "2025-11-11T17:08:41.305326"
+      },
+      "COPERNICUS/S5P/NRTI/L3_O3": {
+        "nombre": "Sentinel-5P Ozone Near Real-Time",
+        "resolucion": "1113m",
+        "temporal": "2018-presente",
+        "frecuencia": "Diaria",
+        "nivel": "L3",
+        "aplicaciones": [
+          "Ozono troposférico",
+          "Calidad del aire"
+        ],
+        "bandas_principales": [
+          "O3_column_number_density",
+          "O3_column_number_density_amf",
+          "O3_slant_column_number_density",
+          "O3_effective_temperature",
+          "cloud_fraction",
+          "sensor_azimuth_angle"
+        ],
+        "last_verified": "2025-11-11T16:12:36.985600",
+        "date_start": "2018-01-01",
+        "date_end": "2025-11-11",
+        "temporal_resolution": "diaria",
+        "sensor_type": "Sentinel-5P TROPOMI",
+        "metadata_enriched": "2025-11-11T17:08:41.305356"
+      },
+      "COPERNICUS/S5P/OFFL/L3_NO2": {
+        "nombre": "L3_NO2",
+        "bandas_principales": [
+          "NO2_column_number_density",
+          "tropospheric_NO2_column_number_density",
+          "stratospheric_NO2_column_number_density",
+          "NO2_slant_column_number_density",
+          "tropopause_pressure",
+          "absorbing_aerosol_index"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:49.533026",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_CO": {
+        "nombre": "L3_CO",
+        "bandas_principales": [
+          "CO_column_number_density",
+          "H2O_column_number_density",
+          "cloud_height",
+          "sensor_altitude",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:50.165166",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_O3": {
+        "nombre": "L3_O3",
+        "bandas_principales": [
+          "O3_column_number_density",
+          "O3_effective_temperature",
+          "cloud_fraction",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle",
+          "solar_azimuth_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:50.415929",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_CH4": {
+        "nombre": "L3_CH4",
+        "bandas_principales": [
+          "CH4_column_volume_mixing_ratio_dry_air",
+          "aerosol_height",
+          "aerosol_optical_depth",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle",
+          "solar_azimuth_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:50.716238",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_SO2": {
+        "nombre": "L3_SO2",
+        "bandas_principales": [
+          "SO2_column_number_density",
+          "SO2_column_number_density_amf",
+          "SO2_slant_column_number_density",
+          "absorbing_aerosol_index",
+          "cloud_fraction",
+          "sensor_azimuth_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:45.517248",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_HCHO": {
+        "nombre": "L3_HCHO",
+        "bandas_principales": [
+          "tropospheric_HCHO_column_number_density",
+          "tropospheric_HCHO_column_number_density_amf",
+          "HCHO_slant_column_number_density",
+          "cloud_fraction",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:45.778473",
+        "auto_agregada": true
+      },
+      "COPERNICUS/S5P/OFFL/L3_AER_AI": {
+        "nombre": "L3_AER_AI",
+        "bandas_principales": [
+          "absorbing_aerosol_index",
+          "sensor_altitude",
+          "sensor_azimuth_angle",
+          "sensor_zenith_angle",
+          "solar_azimuth_angle",
+          "solar_zenith_angle"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:28:52.535785",
+        "auto_agregada": true
+      },
+      "MODIS/061/MCD19A2_GRANULES": {
+        "nombre": "MCD19A2_GRANULES",
+        "bandas_principales": [
+          "Optical_Depth_047",
+          "Optical_Depth_055",
+          "AOD_Uncertainty",
+          "Column_WV",
+          "AOD_QA",
+          "Injection_Height"
+        ],
+        "tipo": "Image",
+        "last_verified": "2025-11-11T16:33:46.040439",
+        "auto_agregada": true
+      }
+    }
+  },
+  "poblacion": {
+    "nombre": "Población y Áreas Urbanas",
+    "colecciones": {
+      "WorldPop/GP/100m/pop": {
+        "nombre": "WorldPop Population Density",
+        "resolucion": "100m",
+        "temporal": "2000-2020",
+        "frecuencia": "Anual",
+        "nivel": "Modelo",
+        "aplicaciones": [
+          "Densidad poblacional",
+          "Planificación urbana",
+          "Salud pública"
+        ],
+        "bandas_principales": [
+          "population"
+        ],
+        "last_verified": "2025-11-11T16:12:37.259054",
+        "date_start": "2000-01-01",
+        "date_end": "2020-12-31",
+        "temporal_resolution": "anual",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.305509"
+      },
+      "CIESIN/GPWv411/GPW_Population_Density": {
+        "nombre": "GPW Population Density",
+        "resolucion": "1000m",
+        "temporal": "2000-2020",
+        "frecuencia": "5 años",
+        "nivel": "Modelo",
+        "bandas_principales": [
+          "population_density"
+        ],
+        "last_verified": "2025-11-11T16:12:37.536632",
+        "date_start": "2000-01-01",
+        "date_end": "2020-12-31",
+        "temporal_resolution": "5 años",
+        "sensor_type": "Múltiples/Otro",
+        "metadata_enriched": "2025-11-11T17:08:41.305536"
+      }
+    }
+  },
+  "lidar_biomasa": {
+    "nombre": "LiDAR y Biomasa (GEDI)",
+    "colecciones": {
+      "LARSE/GEDI/GEDI02_A_002_MONTHLY": {
+        "nombre": "GEDI L2A - Elevación y Altura de Dosel",
+        "resolucion": "25m footprints",
+        "temporal": "2019-presente",
+        "frecuencia": "Mensual",
+        "nivel": "L2A",
+        "qa": true,
+        "aplicaciones": [
+          "Estructura forestal",
+          "Altura de vegetación",
+          "Topografía"
+        ],
+        "bandas_principales": [
+          "elev_lowestmode",
+          "rh98",
+          "quality_flag"
+        ],
+        "sensor_type": "LiDAR",
+        "descripcion": "Elevación geolocalizadas y altura relativa de dosel desde ISS"
+      },
+      "LARSE/GEDI/GEDI02_B_002_MONTHLY": {
+        "nombre": "GEDI L2B - Métricas de Cobertura",
+        "resolucion": "25m footprints",
+        "temporal": "2019-presente",
+        "frecuencia": "Mensual",
+        "nivel": "L2B",
+        "qa": true,
+        "aplicaciones": [
+          "Cobertura vegetal",
+          "Estructura vertical",
+          "PAI/LAI"
+        ],
+        "bandas_principales": [
+          "cover",
+          "pai",
+          "fhd_normal"
+        ],
+        "sensor_type": "LiDAR",
+        "descripcion": "Métricas de cobertura de dosel y distribución vertical"
+      },
+      "LARSE/GEDI/GEDI04_A_002_MONTHLY": {
+        "nombre": "GEDI L4A - Biomasa Aérea (gridded)",
+        "resolucion": "1000m",
+        "temporal": "2019-presente",
+        "frecuencia": "Mensual",
+        "nivel": "L4A",
+        "qa": true,
+        "aplicaciones": [
+          "Carbono forestal",
+          "Biomasa",
+          "Cambio climático",
+          "Monitoreo forestal"
+        ],
+        "bandas_principales": [
+          "MU",
+          "SE",
+          "quality_flag"
+        ],
+        "sensor_type": "LiDAR",
+        "descripcion": "Densidad de biomasa aérea en grillas regulares 1km. MU = Media en Mg/ha"
+      },
+      "LARSE/GEDI/GEDI04_B_002": {
+        "nombre": "GEDI L4B - Predicción de Biomasa",
+        "resolucion": "1000m",
+        "temporal": "2019-2021",
+        "frecuencia": "Producto único",
+        "nivel": "L4B",
+        "qa": false,
+        "aplicaciones": [
+          "Modelado de biomasa",
+          "Inventario forestal global"
+        ],
+        "bandas_principales": [
+          "MU",
+          "V1",
+          "V2"
+        ],
+        "sensor_type": "LiDAR",
+        "descripcion": "Modelo predictivo de biomasa basado en GEDI y datos auxiliares"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# Logs Directory
+
+Este directorio almacena los logs generados por la aplicación.
+
+Los archivos .log están ignorados por git para no llenar el repositorio.

@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Google Earth Engine
+.config/earthengine/
+credentials
+config/config.py
+
+# Environment variables
+.env
+.env.local
+
+# Data files (keep structure, not data)
+data/geojson/*.geojson
+!data/geojson/nunoa.geojson
+!data/geojson/santiago_centro.geojson
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+output/*.csv
+output/*.geojson
+output/*.tif
+!output/README.md
+
+# Logs
+*.log
+logs/*.log
+!logs/.gitkeep
+
+# Testing (no usado actualmente)
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter (no usado actualmente)
+.ipynb_checkpoints/
+*.ipynb
+
+# Documentation (no usado actualmente)
+docs/_build/
+docs/_static/
+docs/_templates/

@@ -1,0 +1,20 @@
+# GEE Toolkit Requirements
+# Compatible con Python 3.12+
+
+# Core - Google Earth Engine
+earthengine-api>=0.1.400
+
+# Data manipulation
+pandas>=2.2.0
+
+# Geospatial
+geopandas>=0.14.0
+shapely>=2.0.0
+
+# Configuration management
+python-dotenv>=1.0.0
+
+# Development tools (opcional)
+# pytest>=8.0.0
+# black>=24.0.0
+# flake8>=7.0.0
