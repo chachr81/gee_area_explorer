@@ -123,7 +123,7 @@ Provee decoradores para aumentar la resiliencia de la aplicación.
 **Decorador `@retry_api_call`**:
 Envuelve las llamadas a la API de GEE. En caso de errores transitorios (`503 Service Unavailable`, `Timeout`), puede reintentar la operación o fallar de forma controlada (`raise_on_failure=False`), lo cual es útil para procesos batch.
 
-### <a name="modulo-search"></a>3.4. Interfaz de Búsqueda (gee_search.py)
+### <a name="modulo-search"></a>3.4. Interfaz de Búsqueda (`gee_search.py`)
 
 Este script es el punto de entrada principal. Actúa como el orquestador que conecta al usuario con el motor del toolkit.
 
