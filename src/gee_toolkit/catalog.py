@@ -3,28 +3,19 @@
 Catálogo Completo de Google Earth Engine
 =========================================
 
-Script para explorar TODAS las colecciones disponibles en GEE
-y generar un inventario exhaustivo para planificación de productos.
-
-Genera:
-- Tabla completa de colecciones con metadatos clave
-- Clasificación por tipo de dato
-- Nivel de procesamiento
-- Resoluciones espaciales y temporales
-- Exportación a CSV para análisis posterior
-
-Autor: Data Scientist
-Fecha: 2025-11-11
+Módulo central para la gestión, descubrimiento y mantenimiento de colecciones GEE.
 """
 
 import ee
 import pandas as pd
 import json
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
+from copy import deepcopy
 from .config import get_project_id as get_project_id_from_config
+from .api_utils import retry_api_call, safe_ee_execute
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -32,436 +23,462 @@ logger = logging.getLogger(__name__)
 
 class CatalogoGEE:
     """
-    Generador de catálogo exhaustivo de colecciones GEE.
-    
-    Attributes:
-        project_id: ID del proyecto de Google Cloud
-        colecciones: Diccionario con el catálogo completo de colecciones
+    Gestor de catálogo de colecciones GEE con capacidades de descubrimiento y mantenimiento.
     """
     
     def __init__(self, project_id: Optional[str] = None):
-        """
-        Inicializa el generador de catálogo.
-        
-        Args:
-            project_id: ID del proyecto de Google Cloud (opcional)
-            
-        Raises:
-            ee.EEException: Error de autenticación o inicialización de GEE
-            FileNotFoundError: Si no se encuentra el archivo de catálogo
-        """
         if not project_id:
             project_id = get_project_id_from_config()
         
         self.project_id: Optional[str] = project_id
-        self.catalog_path: Optional[Path] = None  # Se define en _cargar_catalogo
-        logger.info(f"Inicializando CatalogoGEE con proyecto: {self.project_id}")
-        self._inicializar_gee()
+        self.catalog_path: Path = Path(__file__).parent.parent.parent / 'config' / 'colecciones_gee.json'
         
-        # Cargar catálogo desde archivo JSON externo
+        # Cargar catálogo
         self.colecciones: Dict[str, Any] = self._cargar_catalogo()
     
-    def _inicializar_gee(self) -> None:
-        """
-        Inicializa conexión con GEE.
-        
-        Raises:
-            ee.EEException: Error de autenticación o configuración de GEE
-        """
-        try:
-            ee.Initialize(project=self.project_id)
-            print("[OK] Conexión exitosa con Google Earth Engine")
-            if self.project_id:
-                print(f"[INFO] Proyecto: {self.project_id}")
-        except ee.EEException as gee_error:
-            error_msg = str(gee_error)
-            print(f"[ERROR] Error al inicializar GEE: {error_msg}")
-            
-            if "authentication" in error_msg.lower():
-                print("[INFO] Solución: Ejecuta 'earthengine authenticate'")
-            elif "project" in error_msg.lower():
-                print("[INFO] Solución: Configura la variable GEE_PROJECT o pasa project_id")
-            
-            raise
-    
     def _cargar_catalogo(self) -> Dict[str, Any]:
-        """
-        Carga el catálogo de colecciones desde archivo JSON externo.
-        
-        Returns:
-            Diccionario con el catálogo completo
-            
-        Raises:
-            FileNotFoundError: Si no se encuentra colecciones_gee.json
-            json.JSONDecodeError: Si el JSON tiene errores de sintaxis
-        """
-        # Buscar JSON en config/ relativo al proyecto
-        self.catalog_path = Path(__file__).parent.parent.parent / 'config' / 'colecciones_gee.json'
-        
         try:
+            if not self.catalog_path.exists():
+                return self._definir_catalogo_defecto()
+                
             with open(self.catalog_path, 'r', encoding='utf-8') as f:
                 catalogo = json.load(f)
             
-            # Validar estructura de metadata
+            # Validar metadata
             if '_metadata' not in catalogo:
                 catalogo['_metadata'] = {
-                    'version': '2.0.0',
+                    'version': '2.2.0',
                     'last_updated': datetime.now().isoformat(),
                     'auto_update_enabled': True,
                     'cache_duration_days': 30
                 }
                 self._guardar_catalogo(catalogo)
             
-            categorias = len([k for k in catalogo.keys() if not k.startswith('_')])
-            print(f"[OK] Catálogo cargado: {categorias} categorías")
             return catalogo
-        except FileNotFoundError:
-            print(f"[ERROR] No se encontró el archivo: {self.catalog_path}")
-            print("[INFO] Generando catálogo por defecto...")
-            return self._definir_catalogo_completo()
-        except json.JSONDecodeError as json_error:
-            print(f"[ERROR] Error al parsear JSON: {json_error}")
-            print("[INFO] Usando catálogo por defecto...")
-            return self._definir_catalogo_completo()
+        except Exception as e:
+            logger.error(f"Error cargando catálogo: {e}")
+            return self._definir_catalogo_defecto()
 
-    
-    def _definir_catalogo_completo(self) -> Dict[str, Any]:
-        """
-        Define el catálogo completo de colecciones GEE (fallback si no hay JSON).
-        
-        NOTA: Este método es un fallback. El catálogo principal está en colecciones_gee.json
-        
-        Returns:
-            Diccionario básico con algunas colecciones de ejemplo
-        """
-        print("[WARN] Usando catálogo simplificado (fallback)")
-        return {
-            'opticas_alta_res': {
-                'nombre': 'Imágenes Ópticas de Alta Resolución',
-                'colecciones': {
-                    'COPERNICUS/S2_SR_HARMONIZED': {
-                        'nombre': 'Sentinel-2 MSI L2A (Harmonized)',
-                        'resolucion': '10m',
-                        'temporal': '2017-presente',
-                        'nivel': 'L2A (Surface Reflectance)',
-                        'qa': True
-                    }
-                }
-            }
-        }
-    
-    def _guardar_catalogo(self, catalogo: Dict[str, Any]) -> None:
-        """
-        Guarda el catálogo actualizado en el archivo JSON.
-        
-        Args:
-            catalogo: Diccionario completo del catálogo a guardar
-        """
-        if not self.catalog_path:
-            logger.error("No se ha definido catalog_path")
-            return
+    def _guardar_catalogo(self, catalogo: Optional[Dict[str, Any]] = None) -> None:
+        if catalogo is None:
+            catalogo = self.colecciones
             
         try:
+            self.catalog_path.parent.mkdir(exist_ok=True)
             with open(self.catalog_path, 'w', encoding='utf-8') as f:
                 json.dump(catalogo, f, indent=2, ensure_ascii=False)
-            logger.info(f"Catálogo guardado exitosamente en {self.catalog_path}")
+            logger.info(f"Catálogo guardado en {self.catalog_path}")
         except Exception as e:
-            logger.error(f"Error al guardar catálogo: {e}")
-    
-    def buscar_coleccion_api(self, collection_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Busca información de una colección consultando el API de GEE.
-        
-        Args:
-            collection_id: ID de la colección a buscar (ej: 'COPERNICUS/S2_SR_HARMONIZED')
-            
-        Returns:
-            Diccionario con metadata de la colección o None si no existe
-        """
-        try:
-            # Intentar obtener info de la colección
-            collection = ee.ImageCollection(collection_id)
-            info = collection.limit(1).first().getInfo()
-            
-            metadata = {
-                'nombre': collection_id.split('/')[-1],
-                'collection_id': collection_id,
-                'tipo': info.get('type', 'ImageCollection'),
-                'bandas': [band['id'] for band in info.get('bands', [])],
-                'propiedades': list(info.get('properties', {}).keys()),
-                'last_verified': datetime.now().isoformat(),
-                'source': 'api'
+            logger.error(f"Error guardando catálogo: {e}")
+
+    def _definir_catalogo_defecto(self) -> Dict[str, Any]:
+        return {
+            '_metadata': {'version': '1.0.0', 'last_updated': datetime.now().isoformat()},
+            'opticas_alta_res': {
+                'nombre': 'Imágenes Ópticas de Resolución Media',
+                'colecciones': {}
             }
+        }
+
+    def _detectar_nivel_procesamiento(self, collection_id: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Infiere el nivel de procesamiento a partir de metadata oficial o del ID.
+        """
+        cid = collection_id.upper()
+        props = {}
+        if metadata and 'properties' in metadata:
+            props = {k.upper(): str(v).upper() for k, v in metadata['properties'].items()}
+        
+        # 1. Intentar extraer de propiedades oficiales de GEE
+        nivel_oficial = props.get('SYSTEM:PROCESSING_LEVEL') or props.get('PROCESSING_LEVEL') or props.get('DATA_TYPE')
+        if nivel_oficial:
+            # Normalización básica
+            if 'L1C' in nivel_oficial: return 'L1C'
+            if 'L2A' in nivel_oficial: return 'L2A'
+            if 'SURFACE REFLECTANCE' in nivel_oficial: return 'L2 (SR)'
+            return nivel_oficial.title()
+
+        # 2. Heurística por ID (Fallback)
+        # Sentinel
+        if 'S2_SR' in cid or 'L2A' in cid: return 'L2A'
+        if 'S2_HARMONIZED' in cid and 'SR' not in cid: return 'L1C'
+        if 'COPERNICUS/S2' in cid and 'SR' not in cid: return 'L1C'
+        if 'S1_GRD' in cid: return 'L1_GRD'
+        if 'S5P' in cid: return 'L2 (Atmosférico)'
+        
+        # Landsat
+        if 'C02/T1_L2' in cid or 'C02/T2_L2' in cid: return 'L2'
+        if 'C02/T1_TOA' in cid or 'C02/T2_TOA' in cid: return 'TOA'
+        if 'C02/T1_RT' in cid: return 'RAW'
+        if 'C02/T1' in cid or 'C02/T2' in cid: return 'L1 (DN)'
+        
+        # MODIS
+        if any(x in cid for x in ['MOD09', 'MYD09', 'MCD09']):
+            if 'GA' in cid: return 'L2G'
+            return 'L3' if 'A1' in cid else 'L2'
             
-            logger.info(f"Colección {collection_id} encontrada en API")
-            return metadata
-            
-        except ee.EEException as e:
-            logger.warning(f"Colección {collection_id} no encontrada en API: {e}")
-            return None
-    
+        return 'No especificado'
+
     def _detectar_categoria(self, collection_id: str, metadata: Dict[str, Any]) -> str:
-        """
-        Detecta automáticamente la categoría correcta para una colección.
-        
-        Args:
-            collection_id: ID de la colección
-            metadata: Metadata de la colección
-            
-        Returns:
-            Clave de categoría detectada
-        """
-        col_id_upper = collection_id.upper()
+        cid = collection_id.upper()
         nombre = metadata.get('nombre', '').upper()
-        
-        # Reglas de clasificación por sensor/producto
-        if 'S5P' in col_id_upper or 'TROPOMI' in nombre:
+        desc = str(metadata.get('descripcion', '')).upper()
+        texto = f"{cid} {nombre} {desc}"
+
+        if any(x in cid for x in ['S5P', 'TROPOMI']) or any(x in texto for x in ['NO2', 'CO', 'O3', 'SO2', 'CH4', 'ATMOSPHERE']):
             return 'atmosfera'
-        elif 'S3/OLCI' in col_id_upper or 'OCEANDATA' in col_id_upper or 'HYCOM' in col_id_upper or 'OISST' in col_id_upper:
+        if any(x in cid for x in ['HYCOM', 'GSW', 'OCEANDATA']) or any(x in texto for x in ['WATER', 'OCEAN', 'SST', 'HYDRO']):
             return 'agua'
-        elif 'GSW' in col_id_upper or 'WATER' in nombre:
-            return 'agua'
-        elif 'GDDP-CMIP6' in col_id_upper or 'ERA5' in col_id_upper or 'DAYMET' in col_id_upper or 'GRIDMET' in col_id_upper or 'FLDAS' in col_id_upper:
-            return 'clima'
-        elif 'MOD17' in col_id_upper or 'MYD17' in col_id_upper or 'MOD16' in col_id_upper or 'MOD13' in col_id_upper or 'MYD13' in col_id_upper or 'MCD15' in col_id_upper:
-            return 'vegetacion'
-        elif 'MOD44B' in col_id_upper:  # Vegetation Continuous Fields
-            return 'vegetacion'
-        elif 'MCD43' in col_id_upper or 'MOD09' in col_id_upper or 'MYD11' in col_id_upper:
-            return 'opticas_alta_res'
-        elif 'LANDSAT' in col_id_upper and 'LC08' in col_id_upper:
-            return 'opticas_alta_res'
-        elif 'MCD12' in col_id_upper or 'WORLDCOVER' in col_id_upper or 'DYNAMICWORLD' in col_id_upper or 'CORINE' in col_id_upper or 'LANDCOVER' in col_id_upper:
-            return 'landcover'
-        elif 'MCD64' in col_id_upper or 'FIRMS' in col_id_upper or 'MOD14' in col_id_upper or 'FIRECCI' in col_id_upper:
+        if any(x in cid for x in ['GEDI', 'HANSEN', 'GLAD']) or any(x in texto for x in ['FOREST', 'BIOMASS', 'CANOPY', 'TREE']):
+            return 'lidar_biomasa'
+        if any(x in cid for x in ['FAO', 'WAPOR']) or any(x in texto for x in ['CROP', 'AGRICULTURE', 'YIELD']):
+            return 'agricultura'
+        if any(x in cid for x in ['ISDASOIL', 'OPENLANDMAP']) or 'SOIL' in texto:
+            return 'suelos'
+        if any(x in cid for x in ['FIRMS', 'FIRE', 'MCD64']) or 'BURNED' in texto:
             return 'fuego'
-        elif 'MOD10' in col_id_upper or 'MYD10' in col_id_upper or 'SNOW' in nombre or 'ICE' in nombre:
+        if 'SNOW' in texto or 'ICE' in texto or 'CRYOSPHERE' in texto:
             return 'criosphere'
-        elif 'GRACE' in col_id_upper:
+        if any(x in cid for x in ['WORLDCOVER', 'CORINE', 'NLCD', 'DYNAMICWORLD']):
+            return 'landcover'
+        if any(x in cid for x in ['DEM', 'SRTM', 'ELEVATION']):
             return 'elevacion'
-        elif 'ALOS/PALSAR' in col_id_upper or 'SAR' in nombre:
+        if 'SAR' in texto or 'SENTINEL-1' in cid:
             return 'sar'
-        elif 'MCD19' in col_id_upper or 'AEROSOL' in nombre:
-            return 'atmosfera'
-        elif 'GPW' in col_id_upper or 'POPULATION' in nombre:
+        if any(x in cid for x in ['ERA5', 'CHIRPS', 'GPM', 'CLIMATE']):
+            return 'clima'
+        if any(x in cid for x in ['MOD13', 'NDVI', 'EVI']):
+            return 'vegetacion'
+        if any(x in cid for x in ['WORLDPOP', 'GPW', 'URBAN']):
             return 'poblacion'
         
-        # Por defecto: ópticas si es imagen, clima si es meteorología
-        if 'MODIS' in col_id_upper or 'SENTINEL' in col_id_upper or 'LANDSAT' in col_id_upper:
-            return 'opticas_alta_res'
-        
-        return 'clima'  # Categoría por defecto
-    
-    def agregar_coleccion_al_catalogo(self, collection_id: str, 
-                                      categoria: Optional[str] = None) -> bool:
+        return 'clima'
+
+    @retry_api_call(raise_on_failure=False)
+    def buscar_coleccion_api(self, collection_id: str) -> Optional[Dict[str, Any]]:
         """
-        Agrega una nueva colección al catálogo consultando el API.
-        Auto-detecta la categoría si no se especifica.
-        
-        Args:
-            collection_id: ID de la colección a agregar
-            categoria: Categoría donde agregar (opcional, se auto-detecta)
+        Obtiene metadata enriquecida de la API de Earth Engine.
+        Usa ee.data.getAsset para metadata ligera y evita computaciones pesadas.
+        """
+        try:
+            # 1. Obtener metadata ligera vía REST API (Asset ID)
+            # Esto evita 'accumulating over 5000 elements' al no instanciar ImageCollection pesado
+            try:
+                asset_info = ee.data.getAsset(collection_id)
+            except ee.EEException:
+                # Si falla getAsset (ej: no existe), retornamos None
+                return None
+                
+            if not asset_info or asset_info.get('type') != 'IMAGE_COLLECTION':
+                return None
             
-        Returns:
-            True si se agregó exitosamente, False en caso contrario
-        """
-        # Buscar en API
+            props = asset_info.get('properties', {})
+            title = props.get('title', asset_info.get('id', '').split('/')[-1])
+            
+            # FILTRO DE CALIDAD: Detectar Assets Deprecados
+            is_deprecated = props.get('deprecated', False)
+            if str(is_deprecated).lower() == 'true' or '[DEPRECATED]' in str(title).upper():
+                logger.warning(f"Asset deprecado ignorado: {collection_id}")
+                return None
+            
+            # 2. Intentar obtener bandas y resolución de una imagen RECIENTE
+            # CONTINGENCIA: Saltamos inspección de imágenes para colecciones masivas conocidas
+            # que causan timeouts incluso con filtros (Landsat, Sentinel).
+            # Confiamos solo en la metadata del asset para estas.
+            es_masiva = any(x in collection_id for x in ['LANDSAT/', 'COPERNICUS/', 'MODIS/'])
+            
+            first_img = None
+            res = "No especificado"
+            bandas = []
+            
+            if not es_masiva:
+                try:
+                    col = ee.ImageCollection(collection_id)
+                    # Estrategia: Buscar en Enero 2024 (30 días)
+                    filtered = col.filterDate('2024-01-01', '2024-01-31').limit(1)
+                    
+                    if filtered.size().getInfo() > 0:
+                        first_img_info = filtered.first().getInfo()
+                        if first_img_info and 'bands' in first_img_info:
+                            bandas = [b['id'] for b in first_img_info['bands']]
+                except Exception:
+                    pass
+            else:
+                # Para colecciones masivas, intentamos extraer bandas de metadata si existe en properties
+                pass
+
+            # Extraer periodo temporal de propiedades (ya vienen en asset_info)
+            periodo = "Consultar en GEE"
+            time_start = asset_info.get('startTime') # Formato: "2013-03-18T15:59:36Z"
+            time_end = asset_info.get('endTime')
+            
+            if time_start:
+                try:
+                    d1 = time_start[:7] # YYYY-MM
+                    d2 = time_end[:7] if time_end else "Presente"
+                    periodo = f"{d1} a {d2}"
+                except: pass
+            elif 'date_range' in props:
+                periodo = str(props['date_range'])
+
+            return {
+                'nombre': title,
+                'collection_id': collection_id,
+                'properties': props,
+                'bandas': bandas,
+                'resolucion': res,
+                'periodo': periodo,
+                'last_verified': datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error procesando {collection_id}: {e}")
+            return None
+
+    def agregar_coleccion_al_catalogo(self, collection_id: str, categoria: Optional[str] = None) -> bool:
         metadata = self.buscar_coleccion_api(collection_id)
-        
-        if not metadata:
-            logger.warning(f"No se pudo agregar {collection_id}: no existe en GEE")
+        if not metadata: 
+            print(f"  [ERROR] No se pudo acceder al asset: {collection_id}")
             return False
         
-        # Auto-detectar categoría si no se especificó
-        if categoria is None:
+        if not categoria:
             categoria = self._detectar_categoria(collection_id, metadata)
-            logger.info(f"Categoría auto-detectada para {collection_id}: {categoria}")
         
-        # Crear categoría si no existe
         if categoria not in self.colecciones:
-            logger.error(f"Categoría '{categoria}' no existe en catálogo")
-            return False
-        
-        # Agregar colección
+            self.colecciones[categoria] = {'nombre': categoria.replace('_', ' ').title(), 'colecciones': {}}
+            
         self.colecciones[categoria]['colecciones'][collection_id] = {
             'nombre': metadata['nombre'],
-            'bandas_principales': metadata['bandas'][:6],  # Primeras 6 bandas
-            'tipo': metadata['tipo'],
-            'last_verified': metadata['last_verified']
+            'bandas_principales': metadata['bandas'][:6],
+            'resolucion': metadata['resolucion'],
+            'temporal': metadata['periodo'],
+            'last_verified': metadata['last_verified'],
+            'nivel': self._detectar_nivel_procesamiento(collection_id, metadata)
         }
-        
-        # Guardar cambios
-        self._guardar_catalogo(self.colecciones)
-        logger.info(f"Colección {collection_id} agregada a categoría '{categoria}'")
-        
+        self._guardar_catalogo()
         return True
-    
-    def verificar_coleccion(self, collection_id: str, 
-                           actualizar_si_cambio: bool = True) -> bool:
+
+    def verificar_y_actualizar(self, collection_id: str) -> bool:
         """
-        Verifica si una colección existe en el API y actualiza metadata si cambió.
-        
-        Args:
-            collection_id: ID de la colección a verificar
-            actualizar_si_cambio: Si True, actualiza el catálogo si detecta cambios
-            
-        Returns:
-            True si la colección existe, False en caso contrario
+        Consulta la API de GEE y actualiza toda la metadata del asset en el catálogo.
         """
-        metadata_api = self.buscar_coleccion_api(collection_id)
+        metadata = self.buscar_coleccion_api(collection_id)
+        if not metadata: return False
         
-        if not metadata_api:
-            logger.warning(f"Colección {collection_id} ya no existe en GEE")
-            return False
-        
-        # Buscar en catálogo local
-        for categoria_id, categoria_info in self.colecciones.items():
-            if categoria_id.startswith('_'):
-                continue
-                
-            if collection_id in categoria_info['colecciones']:
-                col_local = categoria_info['colecciones'][collection_id]
-                
-                # Comparar bandas
-                bandas_api = set(metadata_api['bandas'])
-                bandas_local = set(col_local.get('bandas_principales', []))
-                
-                if bandas_api != bandas_local and actualizar_si_cambio:
-                    logger.info(f"Actualizando bandas de {collection_id}")
-                    col_local['bandas_principales'] = metadata_api['bandas'][:6]
-                    col_local['last_verified'] = metadata_api['last_verified']
-                    self._guardar_catalogo(self.colecciones)
-                
+        for cat in self.colecciones.values():
+            if isinstance(cat, dict) and collection_id in cat.get('colecciones', {}):
+                cat['colecciones'][collection_id].update({
+                    'nombre': metadata['nombre'],
+                    'bandas_principales': metadata['bandas'][:6],
+                    'resolucion': metadata['resolucion'],
+                    'temporal': metadata['periodo'],
+                    'last_verified': metadata['last_verified'],
+                    'nivel': self._detectar_nivel_procesamiento(collection_id, metadata)
+                })
+                self._guardar_catalogo()
                 return True
-        
-        logger.info(f"Colección {collection_id} no está en catálogo local")
         return False
-    
-    def verificar_colecciones_expiradas(self, dias_expiracion: int = 30) -> List[str]:
+
+    def revalidar_expiradas(self, dias: int = 30, limite: Optional[int] = None):
+        print(f"\n[INFO] Revalidando colecciones con más de {dias} días de antigüedad...")
+        expiradas = self._obtener_ids_expirados(dias)
+        if not expiradas:
+            print("  [OK] Todas las colecciones están al día.")
+            return
+
+        a_validar = expiradas[:limite] if limite else expiradas
+        validas, invalidas = 0, 0
+
+        for col_id in a_validar:
+            print(f"  Verificando {col_id}...", end=" ")
+            if self.verificar_y_actualizar(col_id):
+                validas += 1
+                print("[OK]")
+            else:
+                invalidas += 1
+                print("[FALLÓ]")
+        
+        print(f"\n[RESUMEN] Válidas: {validas}, Fallidas: {invalidas}")
+
+    def _obtener_ids_expirados(self, dias: int) -> List[str]:
+        umbral = datetime.now() - timedelta(days=dias)
+        expirados = []
+        for cat in self.colecciones.values():
+            if not isinstance(cat, dict) or 'colecciones' not in cat: continue
+            for cid, data in cat['colecciones'].items():
+                last = data.get('last_verified')
+                if not last or datetime.fromisoformat(last) < umbral:
+                    expirados.append(cid)
+        return expirados
+
+    def verificar_y_actualizar(self, collection_id: str) -> bool:
         """
-        Encuentra colecciones que no se han verificado en X días.
-        
-        Args:
-            dias_expiracion: Número de días después de los cuales una colección se considera expirada
-            
-        Returns:
-            Lista de collection_ids que necesitan re-validación
+        Consulta la API de GEE y actualiza toda la metadata del asset en el catálogo.
         """
-        from datetime import timedelta
+        metadata = self.buscar_coleccion_api(collection_id)
+        if not metadata: return False
         
-        ahora = datetime.now()
-        expiradas = []
-        
-        for categoria_id, categoria_info in self.colecciones.items():
-            if categoria_id.startswith('_'):
-                continue
-            
-            for col_id, col_info in categoria_info['colecciones'].items():
-                last_verified_str = col_info.get('last_verified')
+        for cat in self.colecciones.values():
+            if isinstance(cat, dict) and collection_id in cat.get('colecciones', {}):
+                cat['colecciones'][collection_id].update({
+                    'nombre': metadata['nombre'],
+                    'bandas_principales': metadata['bandas'][:6],
+                    'resolucion': metadata['resolucion'],
+                    'temporal': metadata['periodo'],
+                    'last_verified': metadata['last_verified'],
+                    'nivel': self._detectar_nivel_procesamiento(collection_id, metadata)
+                })
+                self._guardar_catalogo()
+                return True
+        return False
+
+    def limpiar_invalidas(self, silencioso: bool = False):
+        """
+        Escanea el catálogo y elimina colecciones que ya no son accesibles en GEE o están deprecadas.
+        """
+        print("\n[INFO] Iniciando limpieza de colecciones inaccesibles o deprecadas...")
+        invalidas = []
+        for cid, cat in self._iter_colecciones():
+            try:
+                # Usar getAsset es mucho más rápido y seguro que instanciar colecciones
+                info = ee.data.getAsset(cid)
                 
-                if not last_verified_str:
-                    # Sin verificación previa → marcar como expirada
-                    expiradas.append(col_id)
-                    continue
+                # Check adicional: Deprecación
+                props = info.get('properties', {})
+                is_deprecated = props.get('deprecated', False)
+                title = props.get('title', '').upper()
                 
-                try:
-                    last_verified = datetime.fromisoformat(last_verified_str)
-                    dias_desde_verificacion = (ahora - last_verified).days
+                if str(is_deprecated).lower() == 'true' or '[DEPRECATED]' in title:
+                    print(f"  [DEPRECADO] {cid}")
+                    invalidas.append((cat, cid))
                     
-                    if dias_desde_verificacion > dias_expiracion:
-                        expiradas.append(col_id)
-                        logger.info(f"{col_id} expirada ({dias_desde_verificacion} días)")
-                        
-                except ValueError:
-                    expiradas.append(col_id)
+            except Exception as e:
+                msg = str(e).lower()
+                if 'not found' in msg or 'permission' in msg or 'access' in msg or 'forbidden' in msg:
+                    print(f"  [INACCESIBLE] {cid}")
+                    invalidas.append((cat, cid))
         
-        logger.info(f"Encontradas {len(expiradas)} colecciones expiradas")
-        return expiradas
-    
-    def _procesar_coleccion(self, categoria_id: str, categoria_nombre: str, 
-                           col_id: str, col_info: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Procesa una colección individual y extrae sus metadatos.
+        if not invalidas:
+            print("  [OK] No se encontraron colecciones inválidas.")
+            return
+
+        print(f"  [!] Se encontraron {len(invalidas)} colecciones inaccesibles, prohibidas o deprecadas.")
         
-        Args:
-            categoria_id: ID de la categoría
-            categoria_nombre: Nombre de la categoría
-            col_id: ID de la colección
-            col_info: Información de la colección
+        if not silencioso:
+            for cat, cid in invalidas:
+                print(f"    - {cid}")
             
-        Returns:
-            Diccionario con registro procesado
-        """
-        return {
-            'categoria': categoria_nombre,
-            'collection_id': col_id,
-            'nombre': col_info.get('nombre', ''),
-            'resolucion_espacial': col_info.get('resolucion', ''),
-            'resolucion_temporal': col_info.get('frecuencia', col_info.get('temporal', '')),
-            'periodo_temporal': col_info.get('temporal', ''),
-            'nivel_procesamiento': col_info.get('nivel', ''),
-            'qa_disponible': col_info.get('qa', False),
-            'bandas_principales': ', '.join(col_info.get('bandas_principales', [])),
-            'variables': ', '.join(col_info.get('variables', [])),
-            'aplicaciones': ', '.join(col_info.get('aplicaciones', [])),
-            'notas': col_info.get('nota', col_info.get('cobertura', ''))
-        }
+            confirm = input("\n¿Eliminar estas colecciones permanentemente? (si/no): ").strip().lower()
+            if confirm != 'si':
+                print("  [INFO] Operación cancelada.")
+                return
 
-    def buscar_por_nivel_procesamiento(self, nivel: str) -> pd.DataFrame:
-        """
-        Busca colecciones por nivel de procesamiento.
+        # Proceder con la eliminación
+        for cat, cid in invalidas:
+            del self.colecciones[cat]['colecciones'][cid]
         
-        Args:
-            nivel: Nivel a buscar (L1C, L2A, L2, TOA, etc.)
+        self._guardar_catalogo()
+        print(f"  [OK] Catálogo limpio. Se eliminaron {len(invalidas)} colecciones.")
+
+    def recategorizar(self):
+        print("\n[INFO] Re-evaluando categorías segón la nueva lógica...")
+        movimientos = 0
+        original = deepcopy(self.colecciones)
+        
+        for cat_id, cat_info in original.items():
+            if cat_id.startswith('_'): continue
+            for cid, data in cat_info.get('colecciones', {}).items():
+                nueva_cat = self._detectar_categoria(cid, data)
+                if nueva_cat != cat_id:
+                    print(f"  [MOVE] {cid}: {cat_id} -> {nueva_cat}")
+                    if nueva_cat not in self.colecciones:
+                        self.colecciones[nueva_cat] = {'nombre': nueva_cat.replace('_', ' ').title(), 'colecciones': {}}
+                    self.colecciones[nueva_cat]['colecciones'][cid] = data
+                    del self.colecciones[cat_id]['colecciones'][cid]
+                    movimientos += 1
+        
+        if movimientos > 0:
+            self._guardar_catalogo()
+            print(f"\n[OK] Se movieron {movimientos} colecciones.")
+        else:
+            print("  [OK] Todas las categorías son correctas.")
+
+    def agregar_lote(self, file_path: str):
+        path = Path(file_path)
+        if not path.exists():
+            print(f"[ERROR] No existe el archivo {file_path}")
+            return
             
-        Returns:
-            DataFrame con colecciones que coinciden
-        """
-        df = self.generar_inventario_completo(exportar_csv=False)
+        with open(path, 'r') as f:
+            ids = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
-        # Búsqueda flexible (case-insensitive)
-        mask = df['nivel_procesamiento'].str.contains(nivel, case=False, na=False)
-        resultados = df[mask].copy()
-        
-        print(f"\n[OK] Encontradas {len(resultados)} colecciones con nivel '{nivel}'")
-        
-        if len(resultados) > 0:
-            print("\nColecciones encontradas:")
-            for idx, row in resultados.iterrows():
-                print(f"  • {row['collection_id']}")
-                print(f"    Nivel: {row['nivel_procesamiento']}")
-                print(f"    Categoría: {row['categoria']}")
-        
-        return resultados
-    
-    def listar_niveles_disponibles(self) -> pd.DataFrame:
-        """
-        Lista todos los niveles de procesamiento disponibles en el catálogo.
-        
-        Returns:
-            DataFrame con niveles únicos y conteo de colecciones
-        """
-        df = self.generar_inventario_completo(exportar_csv=False)
-        
-        # Filtrar niveles no vacíos
-        niveles = df[df['nivel_procesamiento'] != '']['nivel_procesamiento'].value_counts()
-        
-        print("\n" + "="*80)
-        print("NIVELES DE PROCESAMIENTO DISPONIBLES")
-        print("="*80)
-        
-        for nivel, count in niveles.items():
-            print(f"  {nivel:40s} → {count:2d} colecciones")
-        
-        print(f"\n[OK] Total: {len(niveles)} niveles diferentes")
-        
-        return niveles.to_frame(name='n_colecciones').reset_index()
+        print(f"[INFO] Procesando lote de {len(ids)} colecciones...")
+        exitos = 0
+        for cid in ids:
+            if self.agregar_coleccion_al_catalogo(cid):
+                exitos += 1
+                print(f"  [OK] Agregada: {cid}")
+            else:
+                print(f"  [ERROR] No encontrada: {cid}")
+        print(f"\n[RESUMEN] Agregadas con éxito: {exitos}/{len(ids)}")
 
+    def descubrir_colecciones(self, providers: Optional[List[str]] = None):
+        if not providers:
+            providers = [
+                "COPERNICUS", "LANDSAT", "MODIS", "NASA", "ECMWF", "USGS", "JAXA", "ESA", "NOAA", "JRC",
+                "LARSE", "FAO", "WRI", "GOOGLE", "GRIDMET", "WWF", "UMD", "Tsinghua", "COPERNICUS/Landcover"
+            ]
+        
+        base_path = "projects/earthengine-public/assets"
+        total_nuevas = 0
+        ids_existentes = {cid for cid, _ in self._iter_colecciones()}
 
-    
+        def _crawl(folder: str):
+            nonlocal total_nuevas
+            try:
+                res = ee.data.listAssets({'parent': folder})
+                if not res: return
+                for asset in res.get('assets', []):
+                    aid, atype = asset.get('id'), asset.get('type')
+                    if not aid or not atype: continue
+                    legacy_id = aid.replace(f"{base_path}/", "")
+                    
+                    if atype == 'IMAGE_COLLECTION' and legacy_id not in ids_existentes:
+                        print(f"[NUEVO] {legacy_id}")
+                        if self.agregar_coleccion_al_catalogo(legacy_id):
+                            ids_existentes.add(legacy_id)
+                            total_nuevas += 1
+                    elif atype == 'FOLDER':
+                        _crawl(aid)
+            except Exception:
+                pass
+
+        for p in providers:
+            print(f"Explorando {p}...")
+            _crawl(f"{base_path}/{p}")
+        print(f"\n[FIN] Descubiertas {total_nuevas} nuevas colecciones.")
+
+    def _iter_colecciones(self):
+        for cat_id, cat_info in self.colecciones.items():
+            if cat_id.startswith('_'): continue
+            for cid in cat_info.get('colecciones', {}).keys():
+                yield cid, cat_id
+
+    def generar_reporte(self):
+        print("\n" + "="*50)
+        print("REPORTE DE ESTADO DEL CATÁLOGO")
+        print("="*50)
+        total = 0
+        for cat_id, cat_info in sorted(self.colecciones.items()):
+            if cat_id.startswith('_'): continue
+            count = len(cat_info.get('colecciones', {}))
+            total += count
+            print(f" • {cat_info['nombre']}: {count} colecciones")
+        print(f"\nTOTAL: {total} colecciones")
+        print("="*50)
+
     def generar_inventario_completo(self, exportar_csv: bool = True) -> pd.DataFrame:
         """
-        Genera un DataFrame con todas las colecciones del catálogo.
+        Genera un DataFrame con todas las colecciones del catálogo. 
         
         Args:
             exportar_csv: Si True, exporta a CSV
@@ -476,240 +493,111 @@ class CatalogoGEE:
         registros = []
         
         for categoria_id, categoria_info in self.colecciones.items():
-            # Saltar metadata
-            if categoria_id.startswith('_'):
-                continue
+            if categoria_id.startswith('_'): continue
                 
             categoria_nombre = categoria_info['nombre']
-            n_colecciones = len(categoria_info['colecciones'])
+            n_colecciones = len(categoria_info.get('colecciones', {}))
             
-            print(f"\n{categoria_nombre}")
-            print(f"  Colecciones: {n_colecciones}")
+            # print(f"\n{categoria_nombre}: {n_colecciones} colecciones") # Optional logging
             
-            for col_id, col_info in categoria_info['colecciones'].items():
-                registro = self._procesar_coleccion(
-                    categoria_id, categoria_nombre, col_id, col_info
-                )
+            for col_id, col_info in categoria_info.get('colecciones', {}).items():
+                # Procesar colección para el DataFrame
+                registro = {
+                    'categoria': categoria_nombre,
+                    'categoria_id': categoria_id,
+                    'collection_id': col_id,
+                    'nombre': col_info.get('nombre', ''),
+                    'resolucion_espacial': col_info.get('resolucion', ''),
+                    'resolucion_temporal': col_info.get('frecuencia', col_info.get('temporal', '')),
+                    'periodo_temporal': col_info.get('temporal', ''),
+                    'nivel_procesamiento': col_info.get('nivel', ''), # Asegurar que este campo exista o se infiera
+                    'qa_disponible': col_info.get('qa', False),
+                    'bandas_principales': ', '.join(col_info.get('bandas_principales', [])),
+                    'last_verified': col_info.get('last_verified', '')
+                }
+                
+                # Intentar inferir nivel si no existe en el JSON
+                if not registro['nivel_procesamiento']:
+                    registro['nivel_procesamiento'] = self._detectar_nivel_procesamiento(col_id)
+                
                 registros.append(registro)
         
         df = pd.DataFrame(registros)
         
-        print(f"\n[OK] Inventario generado: {len(df)} colecciones")
-        print(f"[OK] Categorías: {df['categoria'].nunique()}")
-        
-        if exportar_csv:
+        if exportar_csv and not df.empty:
             self._exportar_csv(df)
         
         return df
-    
-    def _exportar_csv(self, df: pd.DataFrame) -> Path:
+
+    def listar_niveles_disponibles(self) -> pd.DataFrame:
         """
-        Exporta DataFrame a CSV con timestamp.
+        Lista todos los niveles de procesamiento disponibles en el catálogo con detalles.
+        
+        Returns:
+            DataFrame con niveles ónicos, conteo y ejemplos.
+        """
+        df = self.generar_inventario_completo(exportar_csv=False)
+        
+        if df.empty:
+            print("[WARN] El catálogo está vacío.")
+            return pd.DataFrame()
+
+        # Normalizar niveles vacíos
+        df['nivel_procesamiento'] = df['nivel_procesamiento'].fillna('No especificado')
+        df.loc[df['nivel_procesamiento'] == '', 'nivel_procesamiento'] = 'No especificado'
+
+        # Agrupar y contar
+        niveles = df.groupby('nivel_procesamiento').agg(
+            n_colecciones=('collection_id', 'count'),
+            ejemplos=('collection_id', lambda x: list(x)[:3])  # Tomar 3 ejemplos
+        ).sort_values('n_colecciones', ascending=False)
+        
+        print("\n" + "="*90)
+        print(f"{ 'NIVEL DE PROCESAMIENTO':<40} | {'CANTIDAD':<8} | {'SOPORTE NUBES (Estimado)':<20}")
+        print("-" * 90)
+        
+        for nivel, row in niveles.iterrows():
+            count = row['n_colecciones']
+            
+            # Estimación de soporte de nubes basado en convenciones
+            soporte_nubes = "Probable" if any(x in str(nivel).upper() for x in ['SR', 'TOA', 'L2', 'L1C']) else "No/Variable"
+            if 'RAW' in str(nivel).upper(): soporte_nubes = "No"
+            
+            print(f"{str(nivel):<40} | {count:<8} | {soporte_nubes:<20}")
+            # Mostrar ejemplos indentados
+            print(f"   Ejemplos: {', '.join(row['ejemplos'])}")
+            print("-" * 90)
+        
+        print(f"\n[OK] Total: {len(niveles)} niveles diferentes en {len(df)} colecciones")
+        
+        return niveles.reset_index()
+
+    def buscar_por_nivel_procesamiento(self, nivel: str) -> pd.DataFrame:
+        """
+        Busca colecciones por nivel de procesamiento.
         
         Args:
-            df: DataFrame a exportar
+            nivel: Nivel a buscar (L1C, L2A, L2, TOA, etc.)
             
         Returns:
-            Path del archivo exportado
+            DataFrame con colecciones que coinciden
         """
+        df = self.generar_inventario_completo(exportar_csv=False)
         
-        output_dir = Path(__file__).parent.parent.parent / 'output'
-        output_dir.mkdir(exist_ok=True)
-        
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        csv_path = output_dir / f'catalogo_gee_{timestamp}.csv'
-        
-        df.to_csv(csv_path, index=False, encoding='utf-8')
-        print(f"[OK] Exportado a: {csv_path}")
-        
-        return csv_path
-    
-    def analizar_por_categoria(self, df: pd.DataFrame) -> None:
-        """
-        Analiza el catálogo por categoría.
-        
-        Args:
-            df: DataFrame con inventario completo
-        """
-        print("\n" + "="*80)
-        print("ANÁLISIS POR CATEGORÍA")
-        print("="*80)
-        
-        resumen = df.groupby('categoria').agg({
-            'collection_id': 'count',
-            'resolucion_espacial': lambda x: ', '.join(x.unique()[:3])
-        }).rename(columns={
-            'collection_id': 'n_colecciones',
-            'resolucion_espacial': 'resoluciones_ejemplo'
-        })
-        
-        print("\n" + resumen.to_string())
-    
-    def filtrar_por_criterios(self, df: pd.DataFrame, 
-                             resolucion_max: Optional[str] = None,
-                             incluir_qa: Optional[bool] = None,
-                             categoria: Optional[str] = None) -> pd.DataFrame:
-        """
-        Filtra colecciones por criterios específicos.
-        
-        Args:
-            df: DataFrame con inventario
-            resolucion_max: Resolución máxima (ej: '100m') - no implementado aún
-            incluir_qa: True para solo colecciones con QA
-            categoria: Filtrar por categoría específica
-            
-        Returns:
-            DataFrame filtrado
-        """
-        df_filtrado = df.copy()
-        
-        if categoria:
-            df_filtrado = df_filtrado[df_filtrado['categoria_id'] == categoria]
-        
-        if incluir_qa is not None:
-            df_filtrado = df_filtrado[df_filtrado['qa_disponible'] == incluir_qa]
-        
-        # TODO: Implementar filtro por resolución (requiere parsear strings como "30m", "1km")
-        
-        return df_filtrado
-    
-    def _calcular_estadisticas_resolucion_temporal(self, df: pd.DataFrame) -> Dict[str, int]:
-        """
-        Calcula estadísticas sobre resoluciones temporales.
-        
-        Args:
-            df: DataFrame con inventario
-            
-        Returns:
-            Diccionario con conteos de diferentes tipos de resolución temporal
-        """
-        patrones = {
-            'tiempo_real': r'real|minutos|horas',
-            'diario': r'Diaria|Daily',
-            'estatico': r'Estático'
-        }
-        
-        estadisticas = {}
-        for nombre, patron in patrones.items():
-            estadisticas[nombre] = df['resolucion_temporal'].str.contains(
-                patron, case=False, na=False
-            ).sum()
-        
-        return estadisticas
-    
-    def generar_resumen_ejecutivo(self, df: pd.DataFrame) -> None:
-        """
-        Genera un resumen ejecutivo del catálogo.
-        
-        Args:
-            df: DataFrame con inventario completo
-        """
-        print("\n" + "="*80)
-        print("RESUMEN EJECUTIVO DEL CATÁLOGO GEE")
-        print("="*80)
-        
-        # Estadísticas generales
-        print(f"\nESTADÍSTICAS GENERALES:")
-        print(f"  - Total de colecciones catalogadas: {len(df)}")
-        print(f"  - Categorías: {df['categoria'].nunique()}")
-        print(f"  - Colecciones con QA: {df['qa_disponible'].sum()}")
-        print(f"  - Colecciones sin QA: {(~df['qa_disponible']).sum()}")
-        
-        # Resoluciones espaciales
-        print(f"\nRESOLUCIONES ESPACIALES:")
-        resoluciones_unicas = df['resolucion_espacial'].unique()
-        print(f"  - Diferentes resoluciones: {len(resoluciones_unicas)}")
-        
-        resoluciones_metricas = [r for r in resoluciones_unicas if 'm' in str(r)]
-        if resoluciones_metricas:
-            try:
-                res_min = min(resoluciones_metricas, 
-                            key=lambda x: float(str(x).replace('m', '').split('(')[0].strip()))
-                print(f"  - Mejor resolución: {res_min}")
-            except (ValueError, AttributeError):
-                print("  - Rango: Desde alta resolución hasta productos regionales")
-        
-        # Resoluciones temporales
-        stats_temp = self._calcular_estadisticas_resolucion_temporal(df)
-        print(f"\nRESOLUCIONES TEMPORALES:")
-        print(f"  - Datos en tiempo casi real: {stats_temp['tiempo_real']}")
-        print(f"  - Datos diarios: {stats_temp['diario']}")
-        print(f"  - Datos estáticos: {stats_temp['estatico']}")
-        
-        # Top 5 categorías
-        print(f"\nTOP 5 CATEGORÍAS POR NÚMERO DE COLECCIONES:")
-        top_categorias = df['categoria'].value_counts().head(5)
-        for i, (cat, count) in enumerate(top_categorias.items(), 1):
-            print(f"  {i}. {cat}: {count} colecciones")
+        if df.empty:
+            return pd.DataFrame()
 
-
-def main() -> None:
-    """
-    Función principal del script.
-    """
-    print("\n" + "="*80)
-    print("CATÁLOGO COMPLETO DE GOOGLE EARTH ENGINE")
-    print("Exploración Exhaustiva para Planificación de Productos")
-    print("="*80)
-    
-    try:
-        # Inicializar catálogo
-        catalogo = CatalogoGEE()
+        # Búsqueda flexible (case-insensitive)
+        mask = df['nivel_procesamiento'].str.contains(nivel, case=False, na=False)
+        resultados = df[mask].copy()
         
-        # Generar inventario completo
-        df_inventario = catalogo.generar_inventario_completo(exportar_csv=True)
+        print(f"\n[OK] Encontradas {len(resultados)} colecciones con nivel '{nivel}'")
         
-        # Análisis por categoría
-        catalogo.analizar_por_categoria(df_inventario)
+        if len(resultados) > 0:
+            print("\nColecciones encontradas:")
+            for idx, row in resultados.iterrows():
+                print(f"  • {row['collection_id']}")
+                print(f"    Nivel: {row['nivel_procesamiento']}")
+                print(f"    Categoría: {row['categoria']}")
         
-        # Resumen ejecutivo
-        catalogo.generar_resumen_ejecutivo(df_inventario)
-        
-        # Mostrar algunas colecciones destacadas
-        _mostrar_colecciones_destacadas(df_inventario)
-        
-        print("\n" + "="*80)
-        print("[OK] ANÁLISIS COMPLETADO")
-        print("="*80)
-        print("\nPróximos pasos:")
-        print("1. Revisa el CSV exportado en la carpeta 'output/'")
-        print("2. Identifica las colecciones relevantes para tus productos")
-        print("3. Usa exploracion_google_earth_engine.py para análisis detallado")
-        print("4. Define tus productos basándote en las capacidades disponibles")
-        
-    except ee.EEException as gee_error:
-        print(f"\n[ERROR] Error de GEE: {gee_error}")
-        print("[INFO] Verifica tu autenticación y proyecto configurado")
-        return
-    except Exception as error:
-        print(f"\n[ERROR] Error inesperado: {error}")
-        raise
-
-
-def _mostrar_colecciones_destacadas(df: pd.DataFrame, max_categorias: int = 5) -> None:
-    """
-    Muestra colecciones destacadas por categoría.
-    
-    Args:
-        df: DataFrame con inventario
-        max_categorias: Número máximo de categorías a mostrar
-    """
-    print("\n" + "="*80)
-    print("COLECCIONES DESTACADAS POR CATEGORÍA")
-    print("="*80)
-    
-    categorias_mostrar = df['categoria'].unique()[:max_categorias]
-    
-    for categoria in categorias_mostrar:
-        print(f"\n{categoria}")
-        cols_categoria = df[df['categoria'] == categoria].head(3)
-        
-        for _, col in cols_categoria.iterrows():
-            print(f"  - {col['nombre']}")
-            print(f"    ID: {col['collection_id']}")
-            print(f"    Resolución: {col['resolucion_espacial']} | "
-                  f"Temporal: {col['resolucion_temporal']}")
-
-
-if __name__ == "__main__":
-    main()
+        return resultados

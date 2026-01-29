@@ -1,4 +1,4 @@
-# Python
+# --- Python & Runtime ---
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,58 +20,57 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# --- Entornos Virtuales ---
 venv/
 env/
 ENV/
 .venv
 
-# Google Earth Engine
+# --- Google Earth Engine & Secrets ---
+# Credenciales locales (no subir nunca)
 .config/earthengine/
 credentials
-config/config.py
-
-# Environment variables
+# Archivos de entorno con secretos
 .env
 .env.local
+.env.*
 
-# Data files (keep structure, not data)
-data/geojson/*.geojson
+# --- Datos de Usuario (Input) ---
+# Ignorar datos geojson propios del usuario
+data/geojson/*
+# Mantener ejemplos para que el repo funcione
 !data/geojson/nunoa.geojson
 !data/geojson/santiago_centro.geojson
+# Mantener el archivo README de data
+!data/README.md
 
-# IDEs
+# --- Resultados (Output) ---
+# Ignorar todos los resultados generados
+output/*
+# Mantener el gitkeep para que la carpeta exista
+!output/.gitkeep
+
+# --- Logs ---
+# Ignorar logs de ejecución
+logs/*
+*.log
+# Mantener la carpeta logs
+!logs/.gitkeep
+
+# --- IDEs & OS ---
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Project specific
-output/*.csv
-output/*.geojson
-output/*.tif
-!output/README.md
-
-# Logs
-*.log
-logs/*.log
-!logs/.gitkeep
-
-# Testing (no usado actualmente)
+# --- Testing & Coverage ---
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Jupyter (no usado actualmente)
+# --- Jupyter ---
 .ipynb_checkpoints/
 *.ipynb
-
-# Documentation (no usado actualmente)
-docs/_build/
-docs/_static/
-docs/_templates/

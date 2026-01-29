@@ -1,0 +1,44 @@
+services:
+  # Servicio principal: Actúa como el ejecutable de la herramienta
+  # Uso: docker-compose run --rm cli
+  cli:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: ghcr.io/chachr81/gee-area-explorer:v1.0.0
+    container_name: gee-toolkit
+    environment:
+      - GEE_PROJECT=${GEE_PROJECT}
+    volumes:
+      - ./.env:/app/.env:ro
+      # Credenciales persistentes en root (estándar GEE)
+      - gee-credentials:/root/.config/earthengine
+      # Inputs/Outputs
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./config:/app/config
+      - ./logs:/app/logs
+    stdin_open: true
+    tty: true
+    # Por defecto lanza la interfaz interactiva
+    command: python scripts/gee_search.py
+
+  # Herramientas de mantenimiento (ocultas por defecto)
+  maintenance:
+    extends:
+      service: cli
+    container_name: gee-maintenance
+    profiles: ["ops"]
+    command: python scripts/maintain_catalog.py --report
+
+  # Tests integrales
+  test:
+    extends:
+      service: cli
+    container_name: gee-test
+    profiles: ["test"]
+    command: python scripts/test_integral.py
+
+volumes:
+  gee-credentials:
+    name: gee-credentials-store

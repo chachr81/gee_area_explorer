@@ -1,66 +1,49 @@
 # Contribuyendo a GEE Area Explorer
 
-Gracias por tu interés en contribuir.
+¡Gracias por tu interés en mejorar este proyecto!
 
-## Cómo Contribuir
+## Flujo de Trabajo para Colaboradores
 
-### Reportar Bugs
-- Usa el template de [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)
-- Incluye pasos claros para reproducir el error
-- Especifica tu entorno (OS, Python version, etc.)
+Este proyecto sigue un modelo de desarrollo basado en **Trunk Based Development** con ramas de características efímeras.
 
-### Sugerir Features
-- Usa el template de [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
-- Explica el caso de uso y beneficio
-- Considera alternativas y limitaciones
+### 1. Reportar Problemas
+*   Antes de abrir un issue, busca si ya existe.
+*   Usa las plantillas de GitHub para **Bug Reports** o **Feature Requests**.
+*   Proporciona logs completos y, si es posible, el archivo GeoJSON que causó el error.
 
-### Pull Requests
+### 2. Desarrollo Local
+Para trabajar en el código, recomendamos usar el entorno Docker para garantizar la paridad con producción.
 
-1. **Fork el repositorio**
-2. **Crea una rama** para tu feature
-   ```bash
-   git checkout -b feature/mi-nueva-caracteristica
-   ```
-3. **Haz tus cambios**
-   - Sigue el estilo de código existente
-   - Agrega comentarios donde sea necesario
-   - Actualiza la documentación si aplica
+```bash
+# Construir imagen local
+docker-compose build cli
 
-4. **Commit con mensajes claros**
-   ```bash
-   git commit -m "feat: agrega nueva funcionalidad X"
-   ```
-   
-   Convención de commits:
-   - `feat:` nueva característica
-   - `fix:` corrección de bug
-   - `docs:` cambios en documentación
-   - `refactor:` refactorización de código
-   - `test:` agregar o modificar tests
+# Ejecutar tests de integración
+docker-compose run --rm cli python scripts/test_integral.py
+```
 
-5. **Push y crea Pull Request**
-   ```bash
-   git push origin feature/mi-nueva-caracteristica
-   ```
+### 3. Enviar Cambios (Pull Requests)
+1.  Haz un Fork del repositorio.
+2.  Crea una rama descriptiva (`feat/nueva-busqueda`, `fix/error-memoria`).
+3.  **Ejecuta el test integral** antes de enviar. Si el test falla, el PR no será aceptado.
+4.  Asegúrate de no subir credenciales (`.env`) ni archivos temporales.
 
 ## Estándares de Código
 
-- **Python 3.12+**
-- Seguir PEP 8
-- Docstrings en español
-- Type hints donde sea posible
+*   **Python 3.12+**.
+*   **Type Hints**: Usar tipado estático en firmas de funciones.
+*   **Docstrings**: Google Style o NumPy Style.
+*   **Idioma**: El código y los comentarios deben estar en inglés técnico o español neutro (preferiblemente español para este fork).
 
-## Testing
+## Versionado
 
-Si agregas nueva funcionalidad, considera agregar tests:
-```bash
-pytest tests/
-```
+Este proyecto usa [Semantic Versioning 2.0.0](https://semver.org/).
 
-## Preguntas
+*   **MAJOR** (1.0.0): Cambios incompatibles en la API o CLI.
+*   **MINOR** (1.1.0): Nuevas funcionalidades retro-compatibles.
+*   **PATCH** (1.0.1): Corrección de bugs.
 
-¿Dudas? Abre un [Issue](https://github.com/chachr81/gee_area_explorer/issues) con tu pregunta.
+La versión oficial se gestiona a través de etiquetas (tags) en el repositorio y en la imagen Docker (`vX.Y.Z`).
 
 ---
-
-**Nota:** Este es un proyecto educativo enfocado en facilitar el aprendizaje de Google Earth Engine API.
+**Nota:** Este proyecto es una herramienta de ingeniería profesional. Por favor, mantén el tono técnico en las discusiones.
