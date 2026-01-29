@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Updated with Gemini CLI](https://img.shields.io/badge/Updated%20with-Gemini%20CLI-blueviolet.svg)](#)
 
-[🇺🇸 View in English](README.md)
+[View in English](README.en.md)
 
 GEE Area Explorer es una herramienta diseñada para validar la disponibilidad de imágenes satelitales en Google Earth Engine (GEE) según criterios espaciales y temporales. Está construida para integrarse como un paso de pre-validación en pipelines de datos, evitando cómputos innecesarios sobre colecciones masivas.
 
