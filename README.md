@@ -20,6 +20,7 @@ GEE Area Explorer es una herramienta diseñada para validar la disponibilidad de
     *   [Catalog (Gestión de Metadatos)](#modulo-catalog)
     *   [Analysis (Motor de Búsqueda)](#modulo-analysis)
     *   [API Utils (Resiliencia)](#modulo-api-utils)
+    *   [Search Interface (Interfaz de Búsqueda)](#modulo-search)
 4.  [Base de Datos de Colecciones](#base-datos)
 5.  [Instalación y Configuración](#instalacion)
 6.  [Guía de Uso (Tutorial Completo)](#tutorial)
@@ -122,9 +123,27 @@ Provee decoradores para aumentar la resiliencia de la aplicación.
 **Decorador `@retry_api_call`**:
 Envuelve las llamadas a la API de GEE. En caso de errores transitorios (`503 Service Unavailable`, `Timeout`), puede reintentar la operación o fallar de forma controlada (`raise_on_failure=False`), lo cual es útil para procesos batch.
 
+### <a name="modulo-search"></a>3.4. Interfaz de Búsqueda (gee_search.py)
+
+Este script es el punto de entrada principal. Actúa como el orquestador que conecta al usuario con el motor del toolkit.
+
+**Responsabilidades y Flujos:**
+
+1.  **Gestión de Entrada**: Soporta modo interactivo (menús) y modo directo (vía argumentos).
+2.  **Menú Principal (Opciones)**:
+    *   **Opción 1: Análisis Rápido**: Ejecuta una búsqueda pre-configurada de Sentinel-2 sobre el área de ejemplo (Ñuñoa) para validar que el sistema responde correctamente.
+    *   **Opción 2: Búsqueda Personalizada**: El flujo más robusto. Permite:
+        *   *Selección de Colección*: Mediante sub-menú (filtrado por nombre, navegación por categorías, búsqueda por nivel de procesamiento o ingreso directo de ID).
+        *   *Selección de Área*: Escaneo automático de `data/geojson/` permitiendo elegir el archivo por número.
+        *   *Parámetros*: Definición de fechas (con sugerencias automáticas basadas en la colección) y límite de nubes.
+    *   **Opción 3: Auditoría de Niveles**: Muestra un resumen técnico de todos los niveles de procesamiento (L1C, L2A, TOA, etc.) presentes en el catálogo actual.
+    *   **Opción 4: Exportación por Nivel**: Permite filtrar colecciones por un nivel específico y exportar ese listado a un archivo CSV en `output/`.
+3.  **Coordinación de Búsqueda**: Utiliza la clase `CatalogoGEE` para filtrar datos y llama a `analizar_cobertura_temporal` para ejecutar la lógica espacial.
+4.  **Formateo de Resultados**: Presenta un resumen legible en consola antes de escribir el reporte CSV final.
+
 ---
 
-## 4. <a name="base-datos"></a>BASE DE DATOS DE COLECCIONES
+## 4. BASE DE DATOS DE COLECCIONES
 
 El archivo `config/colecciones_gee.json` funciona como una base de datos documental que almacena los metadatos de los activos GEE.
 

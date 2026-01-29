@@ -20,6 +20,7 @@ GEE Area Explorer is a software tool designed to validate the availability of sa
     *   [Catalog (Metadata Management)](#module-catalog)
     *   [Analysis (Search Engine)](#module-analysis)
     *   [API Utils (Resilience)](#module-api-utils)
+    *   [Search Interface](#module-search)
 4.  [Collection Database](#database)
 5.  [Installation and Setup](#setup)
 6.  [Complete User Guide](#usage)
@@ -122,9 +123,27 @@ Provides decorators to increase application resilience.
 **`@retry_api_call` Decorator**:
 Wraps GEE API calls. In case of transient errors (`503 Service Unavailable`, `Timeout`), it can retry the operation or fail gracefully (`raise_on_failure=False`), which is useful for batch processes.
 
+### <a name="module-search"></a>3.4. Search Interface (gee_search.py)
+
+This script is the main entry point. It acts as the orchestrator connecting the user with the toolkit's core engine.
+
+**Responsibilities and Flows:**
+
+1.  **Input Handling**: Supports both interactive mode (menus) and direct mode (via arguments).
+2.  **Main Menu (Options)**:
+    *   **Option 1: Quick Analysis**: Runs a pre-configured Sentinel-2 search on the sample area (Ñuñoa) to validate system response.
+    *   **Option 2: Custom Search**: The most robust flow. It allows:
+        *   *Collection Selection*: Via sub-menu (filtering by name, browsing by categories, searching by processing level, or direct ID entry).
+        *   *Area Selection*: Automatic scanning of `data/geojson/`, allowing selection by number.
+        *   *Parameters*: Definition of dates (with automatic suggestions based on the collection) and cloud cover limit.
+    *   **Option 3: Level Audit**: Displays a technical summary of all processing levels (L1C, L2A, TOA, etc.) present in the current catalog.
+    *   **Option 4: Export by Level**: Allows filtering collections by a specific level and exporting the list to a CSV file in `output/`.
+3.  **Search Coordination**: Uses the `CatalogoGEE` class to filter data and calls `analizar_cobertura_temporal` to execute spatial logic.
+4.  **Result Formatting**: Displays a human-readable summary in the console before writing the final CSV report.
+
 ---
 
-## 4. <a name="database"></a>Collection Database
+## 4. Collection Database
 
 The `config/colecciones_gee.json` file serves as a document database storing metadata for GEE assets.
 
