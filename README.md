@@ -17,10 +17,10 @@ GEE Area Explorer es una herramienta diseñada para validar la disponibilidad de
 1.  [Visión General del Sistema](#vision-general)
 2.  [Arquitectura de Software](#arquitectura)
 3.  [Descripción Detallada de Módulos](#modulos)
+    *   [Interfaz de Búsqueda (Orquestador)](#modulo-search)
     *   [Catalog (Gestión de Metadatos)](#modulo-catalog)
     *   [Analysis (Motor de Búsqueda)](#modulo-analysis)
     *   [API Utils (Resiliencia)](#modulo-api-utils)
-    *   [Search Interface (Interfaz de Búsqueda)](#modulo-search)
 4.  [Base de Datos de Colecciones](#base-datos)
 5.  [Instalación y Configuración](#instalacion)
 6.  [Guía de Uso (Tutorial Completo)](#tutorial)
@@ -83,7 +83,25 @@ gee_area_explorer/
 
 A continuación se detalla la responsabilidad y funcionamiento de los módulos críticos en `src/gee_toolkit`.
 
-### <a name="modulo-catalog"></a>3.1. Catalog (`catalog.py`)
+### <a name="modulo-search"></a>3.1. Interfaz de Búsqueda (`gee_search.py`)
+
+Este script es el punto de entrada principal. Actúa como el orquestador que conecta al usuario con el motor del toolkit.
+
+**Responsabilidades y Flujos:**
+
+1.  **Gestión de Entrada**: Soporta modo interactivo (menús) y modo directo (vía argumentos).
+2.  **Menú Principal (Opciones)**:
+    *   **Opción 1: Análisis Rápido**: Ejecuta una búsqueda pre-configurada de Sentinel-2 sobre el área de ejemplo (Ñuñoa) para validar que el sistema responde correctamente.
+    *   **Opción 2: Búsqueda Personalizada**: El flujo más robusto. Permite:
+        *   *Selección de Colección*: Mediante sub-menú (filtrado por nombre, navegación por categorías, búsqueda por nivel de procesamiento o ingreso directo de ID).
+        *   *Selección de Área*: Escaneo automático de `data/geojson/` permitiendo elegir el archivo por número.
+        *   *Parámetros*: Definición de fechas (con sugerencias automáticas basadas en la colección) y límite de nubes.
+    *   **Opción 3: Auditoría de Niveles**: Muestra un resumen técnico de todos los niveles de procesamiento (L1C, L2A, TOA, etc.) presentes en el catálogo actual.
+    *   **Opción 4: Exportación por Nivel**: Permite filtrar colecciones por un nivel específico y exportar ese listado a un archivo CSV en `output/`.
+3.  **Coordinación de Búsqueda**: Utiliza la clase `CatalogoGEE` para filtrar datos y llama a `analizar_cobertura_temporal` para ejecutar la lógica espacial.
+4.  **Formateo de Resultados**: Presenta un resumen legible en consola antes de escribir el reporte CSV final.
+
+### <a name="modulo-catalog"></a>3.2. Catalog (`catalog.py`)
 
 La clase `CatalogoGEE` gestiona el ciclo de vida del catálogo de metadatos (`colecciones_gee.json`).
 
@@ -101,7 +119,7 @@ La clase `CatalogoGEE` gestiona el ciclo de vida del catálogo de metadatos (`co
 *   **`descubrir_colecciones(providers)`**:
     Funciona como un crawler que explora carpetas públicas de GEE (ej. `projects/earthengine-public/assets/COPERNICUS`) para identificar nuevas `ImageCollection`.
 
-### <a name="modulo-analysis"></a>3.2. Analysis (`analysis.py`)
+### <a name="modulo-analysis"></a>3.3. Analysis (`analysis.py`)
 
 Este módulo ejecuta las consultas espaciales y temporales contra GEE.
 
@@ -116,30 +134,12 @@ Este módulo ejecuta las consultas espaciales y temporales contra GEE.
 *   **`analizar_cobertura_temporal(...)`**:
     Orquesta el proceso de búsqueda, genera estadísticas agregadas (ej. imágenes por año) y exporta los resultados a un archivo CSV.
 
-### <a name="modulo-api-utils"></a>3.3. API Utils (`api_utils.py`)
+### <a name="modulo-api-utils"></a>3.4. API Utils (`api_utils.py`)
 
 Provee decoradores para aumentar la resiliencia de la aplicación.
 
-**Decorador `@retry_api_call`**:
+**`@retry_api_call`**:
 Envuelve las llamadas a la API de GEE. En caso de errores transitorios (`503 Service Unavailable`, `Timeout`), puede reintentar la operación o fallar de forma controlada (`raise_on_failure=False`), lo cual es útil para procesos batch.
-
-### <a name="modulo-search"></a>3.4. Interfaz de Búsqueda (`gee_search.py`)
-
-Este script es el punto de entrada principal. Actúa como el orquestador que conecta al usuario con el motor del toolkit.
-
-**Responsabilidades y Flujos:**
-
-1.  **Gestión de Entrada**: Soporta modo interactivo (menús) y modo directo (vía argumentos).
-2.  **Menú Principal (Opciones)**:
-    *   **Opción 1: Análisis Rápido**: Ejecuta una búsqueda pre-configurada de Sentinel-2 sobre el área de ejemplo (Ñuñoa) para validar que el sistema responde correctamente.
-    *   **Opción 2: Búsqueda Personalizada**: El flujo más robusto. Permite:
-        *   *Selección de Colección*: Mediante sub-menú (filtrado por nombre, navegación por categorías, búsqueda por nivel de procesamiento o ingreso directo de ID).
-        *   *Selección de Área*: Escaneo automático de `data/geojson/` permitiendo elegir el archivo por número.
-        *   *Parámetros*: Definición de fechas (con sugerencias automáticas basadas en la colección) y límite de nubes.
-    *   **Opción 3: Auditoría de Niveles**: Muestra un resumen técnico de todos los niveles de procesamiento (L1C, L2A, TOA, etc.) presentes en el catálogo actual.
-    *   **Opción 4: Exportación por Nivel**: Permite filtrar colecciones por un nivel específico y exportar ese listado a un archivo CSV en `output/`.
-3.  **Coordinación de Búsqueda**: Utiliza la clase `CatalogoGEE` para filtrar datos y llama a `analizar_cobertura_temporal` para ejecutar la lógica espacial.
-4.  **Formateo de Resultados**: Presenta un resumen legible en consola antes de escribir el reporte CSV final.
 
 ---
 

@@ -83,7 +83,26 @@ gee_area_explorer/
 
 The following details the responsibility and functionality of the critical modules in `src/gee_toolkit`.
 
-### <a name="module-catalog"></a>3.1. Catalog (`catalog.py`)
+### <a name="module-search"></a>3.1. Search Interface (`gee_search.py`)
+
+This script is the main entry point. It acts as the orchestrator connecting the user with the toolkit's core engine.
+
+**Responsibilities and Flows:**
+
+1.  **Input Handling**: Supports both interactive mode (menus) and direct mode (via arguments).
+2.  **Main Menu (Options)**:
+    *   **Option 1: Quick Analysis**: Runs a pre-configured Sentinel-2 search on the sample area (Ñuñoa) to validate system response.
+    *   **Option 2: Custom Search**: The most robust flow. It allows:
+        *   *Collection Selection*: Via sub-menu (filtering by name, browsing by categories, searching by processing level, or direct ID entry).
+        *   *Area Selection*: Automatic scanning of `data/geojson/`, allowing selection by number.
+        *   *Parameters*: Definition of dates (with automatic suggestions based on the collection) and cloud cover limit.
+    *   **Option 3: Level Audit**: Displays a technical summary of all processing levels (L1C, L2A, TOA, etc.) present in the current catalog.
+    *   **Option 4: Export by Level**: Allows filtering collections by a specific level and exporting the list to a CSV file in `output/`.
+3.  **Search Coordination**: Uses the `CatalogoGEE` class to filter data and calls `analizar_cobertura_temporal` to execute spatial logic.
+4.  **Result Formatting**: Displays a human-readable summary in the console before writing the final CSV report.
+
+
+### <a name="module-catalog"></a>3.2. Catalog (`catalog.py`)
 
 The `CatalogoGEE` class manages the lifecycle of the metadata catalog (`colecciones_gee.json`).
 
@@ -101,7 +120,7 @@ The `CatalogoGEE` class manages the lifecycle of the metadata catalog (`coleccio
 *   **`descubrir_colecciones(providers)`**:
     Acts as a crawler, exploring public GEE folders (e.g., `projects/earthengine-public/assets/COPERNICUS`) to identify new `ImageCollection`s.
 
-### <a name="module-analysis"></a>3.2. Analysis (`analysis.py`)
+### <a name="module-analysis"></a>3.3. Analysis (`analysis.py`)
 
 This module executes spatial and temporal queries against GEE.
 
@@ -116,30 +135,12 @@ This module executes spatial and temporal queries against GEE.
 *   **`analizar_cobertura_temporal(...)`**:
     Orchestrates the search process, generates aggregated statistics (e.g., images per year), and exports the results to a CSV file.
 
-### <a name="module-api-utils"></a>3.3. API Utils (`api_utils.py`)
+### <a name="module-api-utils"></a>3.4. API Utils (`api_utils.py`)
 
 Provides decorators to increase application resilience.
 
 **`@retry_api_call` Decorator**:
 Wraps GEE API calls. In case of transient errors (`503 Service Unavailable`, `Timeout`), it can retry the operation or fail gracefully (`raise_on_failure=False`), which is useful for batch processes.
-
-### <a name="module-search"></a>3.4. Search Interface (`gee_search.py`)
-
-This script is the main entry point. It acts as the orchestrator connecting the user with the toolkit's core engine.
-
-**Responsibilities and Flows:**
-
-1.  **Input Handling**: Supports both interactive mode (menus) and direct mode (via arguments).
-2.  **Main Menu (Options)**:
-    *   **Option 1: Quick Analysis**: Runs a pre-configured Sentinel-2 search on the sample area (Ñuñoa) to validate system response.
-    *   **Option 2: Custom Search**: The most robust flow. It allows:
-        *   *Collection Selection*: Via sub-menu (filtering by name, browsing by categories, searching by processing level, or direct ID entry).
-        *   *Area Selection*: Automatic scanning of `data/geojson/`, allowing selection by number.
-        *   *Parameters*: Definition of dates (with automatic suggestions based on the collection) and cloud cover limit.
-    *   **Option 3: Level Audit**: Displays a technical summary of all processing levels (L1C, L2A, TOA, etc.) present in the current catalog.
-    *   **Option 4: Export by Level**: Allows filtering collections by a specific level and exporting the list to a CSV file in `output/`.
-3.  **Search Coordination**: Uses the `CatalogoGEE` class to filter data and calls `analizar_cobertura_temporal` to execute spatial logic.
-4.  **Result Formatting**: Displays a human-readable summary in the console before writing the final CSV report.
 
 ---
 
