@@ -6,7 +6,9 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Updated with Gemini CLI](https://img.shields.io/badge/Updated%20with-Gemini%20CLI-blueviolet.svg)](#)
 
-GEE Area Explorer es una herramienta de ingeniería de datos geoespaciales diseñada para optimizar la interacción, descubrimiento y validación de activos en Google Earth Engine (GEE). Su propósito principal es servir como eslabón inicial en pipelines de datos, permitiendo identificar con precisión quirúrgica qué imágenes satelitales cumplen con criterios espaciales y temporales específicos antes de iniciar procesos de descarga o cómputo masivo.
+[🇺🇸 View in English](README.md)
+
+GEE Area Explorer es una herramienta diseñada para validar la disponibilidad de imágenes satelitales en Google Earth Engine (GEE) según criterios espaciales y temporales. Está construida para integrarse como un paso de pre-validación en pipelines de datos, evitando cómputos innecesarios sobre colecciones masivas.
 
 ---
 
@@ -30,48 +32,47 @@ GEE Area Explorer es una herramienta de ingeniería de datos geoespaciales dise�
 
 ## 1. <a name="vision-general"></a>VISIÓN GENERAL DEL SISTEMA
 
-El problema fundamental al trabajar con Google Earth Engine en entornos de producción es la incertidumbre sobre la disponibilidad de datos. Intentar acceder a una colección deprecada, privada o vacía en un script de producción puede detener todo un flujo de trabajo (ETL). Además, las operaciones de filtrado espacial sobre colecciones globales masivas (como Landsat o Sentinel) pueden resultar en tiempos de espera excesivos o errores de memoria ("computation timed out", "aggregated over 5000 elements").
+Al interactuar con Google Earth Engine mediante programación, surgen desafíos comunes como la gestión de la disponibilidad de datos y la optimización de consultas para evitar errores de timeout. Intentar acceder a una colección deprecada, privada o realizar un filtrado espacial sobre millones de imágenes puede detener un flujo de trabajo automatizado.
 
-GEE Area Explorer resuelve estos problemas mediante:
+GEE Area Explorer aborda estos problemas mediante:
 
-1.  **Validación API-First**: Utiliza la API REST de GEE (`ee.data`) para validar la existencia y metadatos de las colecciones sin instanciar objetos pesados en el servidor de cálculo.
-2.  **Inventario Local**: Mantiene un registro JSON persistente de colecciones validadas, actuando como una caché inteligente para búsquedas rápidas.
-3.  **Búsqueda Optimizada**: Implementa estrategias de filtrado ("Fail-Fast", "Limit-First") que previenen el desbordamiento de memoria al consultar catálogos masivos.
-4.  **Despliegue Contenerizado**: Se distribuye como un "Appliance" Docker que abstrae la complejidad de las dependencias geoespaciales (GDAL, earthengine-api).
+1.  **Validación API-First**: Utiliza la API REST de GEE (`ee.data`) para verificar la existencia y metadatos de las colecciones sin instanciar objetos pesados en el servidor de cómputo.
+2.  **Inventario Local**: Mantiene un registro JSON persistente de las colecciones validadas, actuando como una caché para acelerar las consultas.
+3.  **Búsqueda Optimizada**: Implementa estrategias de filtrado (ej. `limit`) previas a la materialización de resultados para prevenir el desbordamiento de memoria en el cliente.
+4.  **Despliegue Contenerizado**: Se distribuye como un contenedor Docker, encapsulando el entorno de ejecución y sus dependencias (Python, GDAL) para garantizar la portabilidad y consistencia.
 
 ---
 
 ## 2. <a name="arquitectura"></a>ARQUITECTURA DE SOFTWARE
 
-El sistema está construido en Python 3.12 y sigue una arquitectura modular. No existe una interfaz gráfica (GUI); toda la interacción es a través de la línea de comandos (CLI), optimizada para su ejecución en servidores headless o contenedores.
+El sistema está construido en Python 3.12 bajo una arquitectura modular. La interacción se realiza exclusivamente a través de la línea de comandos (CLI), permitiendo su ejecución en servidores o entornos automatizados.
 
 ### Árbol de Directorios y Archivos
 
 ```text
 gee_area_explorer/
 ├── config/
-│   └── colecciones_gee.json       # [PERSISTENCIA] Base de datos JSON. Contiene la definición de +600 colecciones.
+│   └── colecciones_gee.json       # [PERSISTENCIA] Base de datos JSON con metadatos de colecciones.
 ├── src/
 │   └── gee_toolkit/               # [NÚCLEO] Paquete Python principal.
 │       ├── __init__.py            # Inicializador del paquete.
-│       ├── api_utils.py           # [UTILIDAD] Decoradores y manejo de excepciones GEE.
+│       ├── api_utils.py           # [UTILIDAD] Decoradores para manejo de excepciones GEE.
 │       ├── auth_utils.py          # [SEGURIDAD] Gestión de credenciales y sesiones.
 │       ├── analysis.py            # [LÓGICA] Algoritmos de intersección espacial y filtrado.
-│       ├── catalog.py             # [LÓGICA] CRUD del catálogo y crawler de metadatos.
-│       ├── config.py              # [CONFIG] Variables de entorno (.env).
+│       ├── catalog.py             # [LÓGICA] Gestión del ciclo de vida del catálogo.
+│       ├── config.py              # [CONFIG] Carga de variables de entorno.
 │       └── geo_utils.py           # [UTILIDAD] Lectura y transformación de GeoJSON.
 ├── scripts/
-│   ├── gee_search.py              # [CLI] Punto de entrada para usuarios (Búsqueda).
-│   ├── maintain_catalog.py        # [CLI] Herramienta de mantenimiento (Admin).
+│   ├── gee_search.py              # [CLI] Punto de entrada para búsquedas interactivas.
+│   ├── maintain_catalog.py        # [CLI] Herramienta de mantenimiento del catálogo.
 │   ├── generate_docs.py           # [DOCS] Generador de documentación Markdown.
-│   └── test_integral.py           # [TEST] Script de validación E2E.
+│   └── test_integral.py           # [TEST] Script de validación de integración.
 ├── docker/
 │   ├── Dockerfile                 # Definición de la imagen del sistema.
 │   └── docker-entrypoint.sh       # Script de arranque del contenedor.
 ├── data/
 │   └── geojson/                   # [INPUT] Directorio para archivos de área de interés.
-├── output/                        # [OUTPUT] Directorio para CSVs generados.
-├── .env                           # [SECRETO] Variables de entorno (Project ID).
+├── output/                        # [OUTPUT] Directorio para reportes generados.
 └── requirements.txt               # Dependencias de Python.
 ```
 
@@ -79,74 +80,68 @@ gee_area_explorer/
 
 ## 3. <a name="modulos"></a>DESCRIPCIÓN DETALLADA DE MÓDULOS
 
-A continuación se detalla la responsabilidad y funcionamiento interno de cada módulo crítico en `src/gee_toolkit`.
+A continuación se detalla la responsabilidad y funcionamiento de los módulos críticos en `src/gee_toolkit`.
 
 ### <a name="modulo-catalog"></a>3.1. Catalog (`catalog.py`)
 
-Este es el componente central del sistema. Su clase principal `CatalogoGEE` administra el archivo `colecciones_gee.json`.
+La clase `CatalogoGEE` gestiona el ciclo de vida del catálogo de metadatos (`colecciones_gee.json`).
 
 **Funciones Clave:**
 
 *   **`buscar_coleccion_api(collection_id)`**:
-    Esta función es el "guardián" del sistema. Antes de permitir el uso de una colección, verifica su estado en GEE.
-    *   *Estrategia Híbrida*: Primero consulta `ee.data.getAsset(id)` (ligero). Si el activo no existe o devuelve error 404/403, retorna `None` inmediatamente.
-    *   *Filtro de Deprecación*: Analiza las propiedades del activo. Si `deprecated` es `true` o el título contiene "[DEPRECATED]", el activo se descarta.
-    *   *Optimización de Bandas*: Para obtener la lista de bandas, intenta encontrar una sola imagen reciente (filtrando por el último año). Si la colección es masiva (Landsat/Sentinel) y no tiene datos recientes, omite la inspección profunda para evitar timeouts.
+    Verifica el estado de un activo en GEE antes de su uso. Su estrategia consiste en:
+    1.  Consultar `ee.data.getAsset(id)` para una validación ligera, retornando `None` si el activo no existe o es inaccesible (404/403).
+    2.  Analizar las propiedades del activo para descartarlo si está marcado como `deprecated`.
+    3.  Omitir la inspección profunda de imágenes para colecciones masivas (ej. Landsat), previniendo timeouts.
 
 *   **`limpiar_invalidas()`**:
-    Recorre todo el catálogo local y verifica cada ID contra la API. Si un ID ya no es accesible (fue eliminado por Google o cambiaron los permisos), lo elimina del JSON.
+    Itera sobre el catálogo local y elimina las entradas correspondientes a activos que ya no son accesibles en GEE.
 
 *   **`descubrir_colecciones(providers)`**:
-    Un "crawler" que explora carpetas públicas de GEE (ej: `projects/earthengine-public/assets/COPERNICUS`) buscando nuevos `IMAGE_COLLECTION` que no estén en el catálogo local.
+    Funciona como un crawler que explora carpetas públicas de GEE (ej. `projects/earthengine-public/assets/COPERNICUS`) para identificar nuevas `ImageCollection`.
 
 ### <a name="modulo-analysis"></a>3.2. Analysis (`analysis.py`)
 
-Motor encargado de cruzar la dimensión espacial (GeoJSON) con la dimensión temporal (Colección GEE).
+Este módulo ejecuta las consultas espaciales y temporales contra GEE.
 
 **Funciones Clave:**
 
 *   **`buscar_imagenes_por_espacio(id, geometry, dates, ...)`**:
-    Ejecuta la consulta principal.
-    *   *Paso 1*: Instancia la colección.
-    *   *Paso 2*: Aplica `filterBounds(geometry)`. Esto es mucho más eficiente que `.geometry().intersects()`, ya que GEE utiliza índices espaciales (R-Tree/Quadtree) para filtrar tiles sin procesar píxeles.
-    *   *Paso 3*: Aplica `filterDate(start, end)`.
-    *   *Paso 4*: Detección de Nubes. Verifica si la colección tiene propiedades conocidas (`CLOUDY_PIXEL_PERCENTAGE`, `CLOUD_COVER`) y aplica el filtro si el usuario lo solicita.
-    *   *Paso 5 (Crítico)*: Ejecuta `limit(limit)` **ANTES** de cualquier operación de materialización (`toList`). Esto previene errores de memoria si el filtro retorna millones de imágenes.
+    Ejecuta la consulta principal aplicando filtros en un orden optimizado:
+    1.  Aplica `filterBounds(geometry)` para delegar el filtrado espacial al backend de GEE.
+    2.  Aplica `filterDate(start, end)` para acotar temporalmente la búsqueda.
+    3.  Aplica `limit(limit)` antes de materializar la lista de resultados para prevenir errores de memoria.
 
 *   **`analizar_cobertura_temporal(...)`**:
-    Orquesta la búsqueda y genera estadísticas agregadas (imágenes por año, calidad promedio). Exporta el resultado final a un archivo CSV en la carpeta `output/`.
+    Orquesta el proceso de búsqueda, genera estadísticas agregadas (ej. imágenes por año) y exporta los resultados a un archivo CSV.
 
 ### <a name="modulo-api-utils"></a>3.3. API Utils (`api_utils.py`)
 
-Provee robustez ante fallos de red.
+Provee decoradores para aumentar la resiliencia de la aplicación.
 
 **Decorador `@retry_api_call`**:
-Envuelve funciones críticas. Si una llamada a la API de GEE falla por razones transitorias (ej: `503 Service Unavailable`, `Timeout`), captura la excepción y permite decidir si reintentar o fallar silenciosamente (`raise_on_failure=False`). Esto es vital para procesos batch (como actualizar 600 colecciones) donde un solo fallo no debe detener todo el script.
+Envuelve las llamadas a la API de GEE. En caso de errores transitorios (`503 Service Unavailable`, `Timeout`), puede reintentar la operación o fallar de forma controlada (`raise_on_failure=False`), lo cual es útil para procesos batch.
 
 ---
 
 ## 4. <a name="base-datos"></a>BASE DE DATOS DE COLECCIONES
 
-El archivo `config/colecciones_gee.json` es una base de datos documental que almacena el conocimiento del sistema sobre los activos de GEE.
+El archivo `config/colecciones_gee.json` funciona como una base de datos documental que almacena los metadatos de los activos GEE.
 
 **Estructura del Esquema JSON:**
-
 ```json
 {
-  "_metadata": {
-    "version": "2.2.0",
-    "last_updated": "2026-01-29T12:00:00"
-  },
+  "_metadata": { "version": "2.2.0", "last_updated": "..." },
   "categoria_id": {
-    "nombre": "Nombre Legible de la Categoría",
+    "nombre": "Nombre de la Categoría",
     "colecciones": {
-      "ID_UNICO_GEE": {
-        "nombre": "Título Oficial del Dataset",
-        "nivel": "Nivel de Procesamiento (L1C, L2A, TOA)",
-        "resolucion": "Resolución Nominal (m)",
-        "temporal": "Rango de Fechas (Inicio - Fin)",
-        "bandas_principales": ["Lista", "de", "bandas"],
-        "last_verified": "Timestamp de última validación exitosa"
+      "ID_GEE": {
+        "nombre": "Título del Dataset",
+        "nivel": "Nivel de Procesamiento",
+        "resolucion": "Resolución Nominal",
+        "temporal": "Rango de Fechas",
+        "bandas_principales": [],
+        "last_verified": "Timestamp"
       }
     }
   }
@@ -166,153 +161,103 @@ El archivo `config/colecciones_gee.json` es una base de datos documental que alm
 | `agua` | Cuerpos de agua, recurrencia, salinidad, temperatura | ~30 |
 | `atmosfera` | Gases traza (Sentinel-5P: NO2, CO, O3, CH4) | ~90 |
 | `fuego` | Detección de puntos de calor y áreas quemadas | ~20 |
-| `poblacion` | Densidad poblacional y asentamientos humanos | ~15 |
+| `poblacion` | Population density and human settlements | ~15 |
+
+> Para la lista completa y detallada de todas las colecciones, consulte el **[Catálogo de Colecciones Completo](docs/CATALOGO_COLECCIONES.md)**.
 
 ---
 
-## 5. <a name="instalacion"></a>INSTALACIÓN Y CONFIGURACIÓN
+## 5. <a name="setup"></a>Installation and Setup
 
 ### Requisitos Previos
-1.  **Docker**: Debe estar instalado y en ejecución.
-2.  **Cuenta de Google**: Debe tener acceso a Google Earth Engine (registrarse en earthengine.google.com).
-3.  **Proyecto GCP**: Debe tener un Project ID de Google Cloud habilitado para usar la API de Earth Engine.
+1.  Docker y Docker Compose.
+2.  Una cuenta de Google con acceso a Google Earth Engine.
+3.  Un Project ID de Google Cloud Platform (GCP) habilitado para la API de GEE.
 
 ### Paso 1: Obtener el Código
 Clone el repositorio en su máquina local:
-
 ```bash
 git clone https://github.com/chachr81/gee_area_explorer.git
 cd gee_area_explorer
 ```
 
 ### Paso 2: Configuración de Entorno
-Copie el archivo de ejemplo y edítelo con su ID de proyecto:
-
+Copie el archivo de ejemplo y defina su ID de proyecto:
 ```bash
 cp .env.example .env
 ```
-
 Edite `.env`:
 ```ini
-GEE_PROJECT=mi-proyecto-gcp-id-12345
+GEE_PROJECT=su-id-de-proyecto-gcp
 ```
 
 ### Paso 3: Construcción del Contenedor
-Construya la imagen Docker localmente (esto instalará todas las dependencias de Python y GDAL):
-
+Este comando construye la imagen Docker localmente, instalando todas las dependencias.
 ```bash
 docker-compose build cli
 ```
 
-### Paso 4: Autenticación (Crucial)
-Debe autorizar al contenedor para usar sus credenciales de Google. Este paso se realiza **una sola vez**.
-
+### Paso 4: Autenticación (Una sola vez)
+Autorice al contenedor para usar sus credenciales de GEE. Este paso se realiza una única vez.
 ```bash
 docker-compose run --rm cli earthengine authenticate
 ```
-
-El sistema le proporcionará una URL.
-1.  Abra la URL en su navegador.
-2.  Autorice el acceso.
-3.  Copie el código de verificación.
-4.  Péguelo en la terminal.
-
-Las credenciales se guardarán en un volumen Docker persistente (`gee-credentials`).
+Siga las instrucciones en la terminal: abra la URL, autorice el acceso y pegue el código de verificación. Las credenciales se guardarán en un volumen Docker (`gee-credentials`).
 
 ---
 
 ## 6. <a name="tutorial"></a>GUÍA DE USO (TUTORIAL COMPLETO)
 
-### <a name="uso-interactivo"></a>A. Modo Interactivo (Usuario Humano)
+### <a name="uso-interactivo"></a>A. Modo Interactivo
 
-Este modo es ideal para exploración, descubrimiento de datos y pruebas rápidas.
+Modo diseñado para exploración y pruebas rápidas.
 
 1.  **Prepare su Área de Interés**:
-    Copie su archivo `.geojson` (Polígono o FeatureCollection) en la carpeta `data/geojson/` del proyecto.
-    *   *Ejemplo*: `data/geojson/mi_finca.geojson`
-
+    Copie su archivo GeoJSON en la carpeta `data/geojson/`.
 2.  **Inicie la Herramienta**:
     ```bash
     docker-compose run --rm cli
     ```
-
 3.  **Navegación por Menú**:
-    *   Seleccione la opción **2. Búsqueda personalizada**.
-    *   La herramienta cargará el catálogo (esto puede tomar unos segundos).
-    *   **Selección de Colección**: Puede buscar por nombre (ej: "Sentinel") o navegar por categorías.
-    *   **Selección de Área**: La herramienta listará automáticamente los archivos en `data/geojson`. Seleccione el número correspondiente a su archivo.
-    *   **Parámetros**: Ingrese fecha de inicio, fin y porcentaje máximo de nubes (0-100).
-
+    El menú le guiará para seleccionar una colección, un archivo de área y los parámetros de la búsqueda.
 4.  **Resultados**:
-    La herramienta procesará la consulta y mostrará en pantalla un resumen. El archivo CSV detallado se guardará en `output/`.
+    La herramienta procesará la consulta y guardará un archivo CSV en el directorio `output/`.
 
-### <a name="uso-pipeline"></a>B. Modo Pipeline (Automatización / Scripts)
+### <a name="uso-pipeline"></a>B. Modo Pipeline (Automatización)
 
-Este modo está diseñado para integrar la herramienta en flujos de trabajo automatizados (Cron, Airflow, Bash scripts). No requiere interacción humana.
+Diseñado para integrar la herramienta en flujos de trabajo automatizados.
 
 **Sintaxis General:**
 ```bash
 docker-compose run --rm cli python scripts/gee_search.py [RUTA_GEOJSON]
 ```
-
-**Escenario de Ejemplo:**
-Usted tiene un pipeline que genera un GeoJSON de un área afectada por un incendio y necesita saber inmediatamente qué imágenes satelitales están disponibles para esa zona.
-
-1.  El pipeline deposita `incendio_2024.geojson` en `data/geojson/`.
-2.  El pipeline ejecuta:
-    ```bash
-    docker-compose run --rm cli python scripts/gee_search.py data/geojson/incendio_2024.geojson
-    ```
-3.  El script utiliza la colección por defecto (Sentinel-2 L2A Harmonized) y genera el CSV en `output/`.
-4.  El pipeline lee el CSV generado para descargar las imágenes o procesar los IDs.
+Este comando ejecutará el análisis sobre el GeoJSON especificado usando parámetros por defecto.
 
 ---
 
 ## 7. <a name="mantenimiento"></a>MANTENIMIENTO DEL SISTEMA
 
-Con el tiempo, Google agrega nuevas colecciones y depreca otras. Para mantener su catálogo local sincronizado y saludable:
-
 ### Verificar Salud del Sistema
-Ejecuta una serie de pruebas de conexión y validación de una muestra de colecciones.
-
+Ejecuta una serie de pruebas de conexión y validación de colecciones.
 ```bash
 docker-compose run --rm cli python scripts/test_integral.py
 ```
 
 ### Actualizar y Limpiar Catálogo
-Este proceso recorre todo el catálogo JSON, verifica cada activo contra la API, actualiza metadatos y elimina entradas inválidas.
-
+Verifica cada activo del catálogo contra la API de GEE y elimina las entradas inválidas.
 ```bash
 docker-compose --profile ops run --rm maintenance python scripts/maintain_catalog.py --revalidate --clean
-```
-
-### Generar Reporte de Estado
-Muestra un resumen de cuántas colecciones hay por categoría y su estado.
-
-```bash
-docker-compose --profile ops run --rm maintenance python scripts/maintain_catalog.py --report
 ```
 
 ---
 
 ## 8. <a name="troubleshooting"></a>SOLUCIÓN DE PROBLEMAS
 
-### Error: "Credential path not found" o "gcloud not found"
-Esto indica que el contenedor no encuentra las credenciales en el volumen.
-*   **Solución**: Ejecute nuevamente el paso de autenticación (`earthengine authenticate`). Verifique que el volumen `gee-credentials` exista (`docker volume ls`).
-
-### Error: "Collection query aborted after accumulating over 5000 elements"
-Esto ocurre cuando GEE intenta procesar demasiados metadatos de una colección masiva (como Landsat) sin filtros suficientes.
-*   **Solución**: El código ha sido parcheado (v2.2.0) para usar `ee.data.getAsset` y evitar este error. Si persiste, asegúrese de estar usando la última versión del código (`git pull`).
-
-### Los archivos GeoJSON no aparecen en el menú
-*   **Solución**: Asegúrese de que los archivos estén físicamente en la carpeta `data/geojson/` de su máquina host y que tengan la extensión `.geojson` (minúsculas preferible). Docker monta esta carpeta en tiempo de ejecución.
-
-### Permisos de Escritura en Linux
-Los archivos en `output/` se crean con el usuario interno del contenedor (root).
-*   **Solución**: Puede cambiar el propietario desde su host: `sudo chown -R $USER:$USER output/`.
+*   **"Credential path not found"**: Indica un fallo de autenticación. Ejecute de nuevo el paso 4 de la instalación.
+*   **"Collection query aborted after accumulating over 5000 elements"**: La arquitectura actual está diseñada para prevenir este error. Si ocurre, asegúrese de tener la última versión del código.
+*   **Permisos de Escritura en Linux**: Los archivos generados en `output/` pertenecen al usuario `root` del contenedor. Cambie su propiedad con `sudo chown -R $USER:$USER output/`.
 
 ---
 
-**Desarrollado con Python y Google Earth Engine API.**
+**Nota sobre la contribución**: Este proyecto fue refactorizado y documentado con la asistencia de Gemini CLI (modelo Gemini 3 Pro).
 Licencia MIT.
